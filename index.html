@@ -8,6 +8,11 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Commercial site management, residential lawn maintenance and landscape installation across Michigan's Tri-Cities. Based in Hemlock, MI. Est. 2019. (989) 574-6617.">
 <link rel="icon" href="assets/mark-ink.png">
+<script>
+/* Refresh should start at the top, not wherever you happened to be. Set before
+   first paint so the browser never restores the old scroll position. */
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0..100,0..1&family=Inter:wght@300..600&display=swap" rel="stylesheet">
@@ -40,7 +45,7 @@
 }
 
 *,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;scroll-behavior:auto}
+html{-webkit-text-size-adjust:100%;scroll-behavior:auto;scrollbar-gutter:stable}
 body{
   margin:0;background:var(--bone);color:var(--ink);
   font-family:Inter,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
@@ -69,11 +74,46 @@ p{margin:0}
 }
 .eyebrow.on-dark{color:rgba(243,240,231,.62)}
 
+/* ============================================================
+   BOOT — the mark arrives on an ink screen, then the ink clears
+   to reveal the hero behind it. The boot mark is placed exactly
+   over the real one, so the handoff is invisible. Driven purely
+   by CSS animation, so it always clears even if JS never runs.
+   ============================================================ */
+.boot{position:fixed;inset:0;z-index:200;pointer-events:none;
+  animation:bootGone .01s linear 1.85s forwards}
+@keyframes bootGone{to{visibility:hidden}}
+.boot__bg{position:absolute;inset:0;background:var(--ink);
+  animation:bootBg .75s ease-in-out 1.05s forwards}
+@keyframes bootBg{to{opacity:0}}
+.boot__mark{
+  position:fixed;left:50%;top:50%;width:clamp(190px,32vw,420px);
+  aspect-ratio:1328/752;transform:translate(-50%,-50%);
+  /* must match .flying-mark exactly or the shadow pops in at the handoff */
+  /* no drop-shadow: the veil already gives the mark 6:1 contrast, and a
+     44px blur just haloed it against the photo */
+}
+.boot__in{
+  position:absolute;inset:0;opacity:0;transform-origin:50% 50%;
+  animation:bootIn .8s cubic-bezier(.2,.8,.3,1) .08s forwards;
+}
+@keyframes bootIn{
+  0%  {opacity:0;transform:scale(.86);filter:blur(3px)}
+  55% {opacity:1}
+  100%{opacity:1;transform:scale(1);filter:blur(0)}
+}
+/* Only one mark on screen at a time: the real one stays hidden until the boot
+   copy is removed. They occupy the same box, so the swap is invisible. */
+html.booting .flying-mark{opacity:0 !important}
+
 /* --- Lenis (smooth scroll) --- */
 html.lenis,html.lenis body{height:auto}
 .lenis.lenis-smooth{scroll-behavior:auto !important}
 .lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain}
-.lenis.lenis-stopped{overflow:hidden}
+/* Lenis ships this as overflow:hidden. That removes the scrollbar for the two
+   seconds the intro holds the page and puts it back after — a visible change.
+   stop() already swallows wheel and touch, so the lock isn't needed. */
+.lenis.lenis-stopped{overflow:visible}
 .lenis.lenis-smooth iframe{pointer-events:none}
 
 /* ============================================================
@@ -96,9 +136,17 @@ html.lenis,html.lenis body{height:auto}
    Fading it in left a gap where neither was solid, which read as a pulse. */
 .nav__mark{
   height:30px;aspect-ratio:1328/752;justify-self:center;
-  opacity:0;position:relative;
+  opacity:0;position:relative;display:block;
+  pointer-events:none;                    /* not clickable until it has landed */
+  /* transform only — an opacity transition here cross-fades against the flying
+     mark at the handoff and reads as a pulse */
+  transition:transform .3s var(--ease);
 }
-.nav__mark.landed{opacity:1}
+.nav__mark.landed{opacity:1;pointer-events:auto}
+.nav a.nav__mark::after{background:var(--bone)}   /* white, not the copper on the text links */
+.nav__mark:hover{transform:scale(1.06)}
+.nav__mark:active{transform:scale(.94);transition-duration:.06s}
+.nav__mark:focus-visible{outline:2px solid var(--copper);outline-offset:6px;border-radius:3px}
 .nav__links{display:flex;gap:1.9rem;align-items:center;justify-self:start}
 .nav__right{justify-self:end;display:flex;align-items:center}
 .nav a{
@@ -111,12 +159,33 @@ html.lenis,html.lenis body{height:auto}
   background:var(--copper);transition:right .4s var(--ease);
 }
 .nav a:hover::after{right:0}
-.nav .cta{
+/* One button, used in the hero and in the bar. The whole thing goes green,
+   swells slightly and lifts; the arrow steps forward. */
+.btn-cta{
+  position:relative;
+  display:inline-flex;align-items:center;gap:.6rem;
   color:var(--ink);background:var(--bone);border-radius:999px;
-  padding:.6rem 1.15rem;
+  text-decoration:none;white-space:nowrap;
+  transition:background-color .32s cubic-bezier(.22,.9,.3,1),
+             color .22s var(--ease),
+             transform .28s cubic-bezier(.22,.9,.3,1),
+             box-shadow .32s var(--ease);
 }
+.btn-cta:hover{
+  background-color:var(--green);
+  color:#fff;
+  transform:translateY(-2px) scale(1.045);
+  box-shadow:0 0 0 2px #fff, 0 10px 26px rgba(46,107,56,.45);   /* white outline */
+}
+.btn-cta:active{transform:translateY(0) scale(.97);box-shadow:none;transition-duration:.07s}
+.btn-cta .arw{display:inline-block;transition:transform .32s cubic-bezier(.22,.9,.3,1)}
+.btn-cta:hover .arw{transform:translateX(5px)}
+.btn-cta:focus-visible{outline:2px solid var(--copper);outline-offset:4px}
+
+.nav a.btn-cta{color:var(--ink)}          /* .nav a would otherwise win and make it invisible */
+.nav a.btn-cta:hover{color:#fff}
+.nav .cta{padding:.6rem 1.15rem}
 .nav .cta::after{display:none}
-.nav .cta:hover{background:var(--copper);color:var(--bone)}
 @media(max-width:860px){
   .nav__links{display:none}
 }
@@ -158,15 +227,13 @@ html.lenis,html.lenis body{height:auto}
   padding-inline:var(--gut);width:100%;
   display:flex;flex-direction:column;align-items:center;
 }
-.intro__eyebrow{
-  display:flex;align-items:center;justify-content:center;gap:1rem;
-  margin-bottom:clamp(1.5rem,4vh,2.75rem);
+.intro__cta{
+  margin-bottom:clamp(1.6rem,4.5vh,3rem);
+  font-size:clamp(.82rem,1.05vw,.95rem);letter-spacing:.14em;
+  text-transform:uppercase;font-weight:700;
+  padding:1.05rem 2.3rem;
+  box-shadow:0 6px 26px rgba(0,0,0,.3);
   will-change:opacity,transform;
-}
-.intro__eyebrow span{white-space:nowrap}
-.intro__eyebrow i{
-  display:block;width:clamp(28px,7vw,72px);height:1px;
-  background:rgba(243,240,231,.4);
 }
 /* Reserves the mark's space in the hero column. The mark itself is a fixed
    overlay (below) so it can travel OVER the nav bar rather than under it —
@@ -181,27 +248,12 @@ html.lenis,html.lenis body{height:auto}
   width:clamp(190px,32vw,420px);aspect-ratio:1328/752;
   transform-origin:50% 50%;will-change:transform;
   pointer-events:none;
-  filter:drop-shadow(0 10px 44px rgba(0,0,0,.45));
+  /* no drop-shadow: the veil already gives the mark 6:1 contrast, and a
+     44px blur just haloed it against the photo */
 }
 
-/* The mark is two layers so the leaf can be hinged independently of the CV.
-   Split from the original PNG along the V's right edge; the two recomposite
-   pixel-for-pixel, so a still frame is identical to the one-piece logo. */
-.mark2__base,.mark2__leaf{position:absolute;inset:0;width:100%;height:100%}
-.mark2__leaf{
-  transform-origin:72.9% 49.7%;   /* where the leaf meets the V */
-}
-/* The leaf stirs the moment you start scrolling, while the mark is still big. */
-.flying-mark.is-stirred .mark2__leaf{
-  animation:leafSettle .82s cubic-bezier(.22,.9,.3,1) both;
-}
-@keyframes leafSettle{
-  0%   {transform:rotate(0deg)}
-  26%  {transform:rotate(-14deg)}
-  55%  {transform:rotate(6deg)}
-  78%  {transform:rotate(-2.5deg)}
-  100% {transform:rotate(0deg)}
-}
+/* The mark is a single image and nothing moves — the intro is fades only. */
+.markimg{position:absolute;inset:0;width:100%;height:100%}
 .intro__word{
   margin-top:clamp(1.1rem,3vh,1.9rem);
   color:var(--bone);font-weight:600;
@@ -239,7 +291,7 @@ html.lenis,html.lenis body{height:auto}
 /* ============================================================
    2 — MANIFESTO
    ============================================================ */
-.manifesto{padding:clamp(6rem,17vh,12rem) 0 clamp(5rem,13vh,9rem)}
+.manifesto{padding-block:clamp(6rem,17vh,12rem) clamp(5rem,13vh,9rem)}
 .manifesto h2{
   font-size:var(--d2);max-width:19ch;
   margin-bottom:clamp(2rem,5vw,3.5rem);
@@ -297,6 +349,7 @@ html.lenis,html.lenis body{height:auto}
   transition:padding-left .45s var(--ease);
 }
 .svc-row__head:hover{padding-left:.6rem}
+.svc-row__head:active{padding-left:.25rem;transition-duration:.07s}
 .svc-row__head:focus-visible{outline:2px solid var(--copper);outline-offset:4px}
 .svc-num{font-family:Fraunces,serif;font-size:.82rem;color:var(--copper);flex:none;letter-spacing:.05em}
 .svc-title{
@@ -365,7 +418,7 @@ html.lenis,html.lenis body{height:auto}
 /* ============================================================
    4 — THE WORK (collage; no captions)
    ============================================================ */
-.work{padding:clamp(5rem,12vh,8rem) 0}
+.work{padding-block:clamp(5rem,12vh,8rem)}
 .work__head{margin-bottom:clamp(2rem,5vw,3.25rem);max-width:34ch}
 .work__head h2{font-size:var(--d2);margin-top:.9rem}
 
@@ -400,17 +453,26 @@ html.lenis,html.lenis body{height:auto}
    6 — REVIEWS (drag-through rail with depth)
    ============================================================ */
 .reviews{padding:clamp(5rem,12vh,8rem) 0;overflow:hidden}
+/* Static header above the rail: title left, score right. Nothing here moves —
+   only the cards do. */
 .reviews__head{
   max-width:var(--maxw);margin:0 auto clamp(2rem,4.5vw,3rem);
   padding-inline:var(--gut);
   display:flex;flex-wrap:wrap;justify-content:space-between;
-  gap:1.5rem;align-items:baseline;
+  gap:1.5rem 2rem;align-items:flex-end;
 }
-.reviews__head h2{font-size:var(--d3);max-width:20ch}
+.reviews__head h2{font-size:var(--d3);max-width:22ch}
+.reviews__score{flex:none;text-align:right}
+.reviews__score .eyebrow{margin-top:.5rem}
+@media(max-width:640px){
+  .reviews__head{align-items:flex-start}
+  .reviews__score{text-align:left}
+}
 .stars{color:var(--copper);letter-spacing:.25em;font-size:.9rem}
 
 .rail{
-  display:flex;gap:clamp(.9rem,1.6vw,1.35rem);
+  --rgap:clamp(.9rem,1.6vw,1.35rem);
+  display:flex;gap:var(--rgap);
   overflow-x:auto;overscroll-behavior-x:contain;
   perspective:1400px;
   cursor:grab;outline:none;
@@ -422,8 +484,11 @@ html.lenis,html.lenis body{height:auto}
 .rail:focus-visible{outline:2px solid var(--copper);outline-offset:6px;border-radius:4px}
 
 .rcard{
-  flex:0 0 clamp(255px,25vw,340px);
-  margin:0;
+  /* width is set from JS (--cardw): a percentage here would resolve against the
+     rail's content box, which depends on the centring padding, which depends on
+     the card width — circular. */
+  flex:0 0 var(--cardw, 320px);
+  margin:0;cursor:pointer;
 }
 .rcard__in{
   height:100%;box-sizing:border-box;
@@ -437,7 +502,14 @@ html.lenis,html.lenis body{height:auto}
   /* set by JS off distance from centre; transition only smooths the idle state */
   transition:border-color .4s var(--ease),background .4s var(--ease);
 }
-.rcard.is-near .rcard__in{border-color:rgba(16,26,19,.28);background:rgba(255,255,255,.95)}
+.rcard.is-focus .rcard__in{
+  border-color:var(--ink);
+  background:#fff;
+  box-shadow:0 10px 34px rgba(16,26,19,.13);
+}
+.rcard.is-focus .rcard__stars{color:var(--copper)}
+.rcard:not(.is-focus) .rcard__in{border-color:var(--rule)}
+.rcard:not(.is-focus) .rcard__stars{color:var(--ink-30)}
 
 .rcard__stars{color:var(--copper);font-size:.72rem;letter-spacing:.22em;flex:none}
 .rcard p{
@@ -467,9 +539,14 @@ html.lenis,html.lenis body{height:auto}
   border:1px solid var(--ink-30);background:transparent;color:var(--ink);
   cursor:pointer;font:inherit;font-size:1rem;line-height:1;
   display:grid;place-items:center;
-  transition:background .35s var(--ease),color .35s var(--ease),border-color .35s var(--ease);
+  transition:background .3s var(--ease),color .3s var(--ease),
+             border-color .3s var(--ease),transform .18s var(--ease);
 }
-.rail-btn:hover:not(:disabled){background:var(--ink);color:var(--bone);border-color:var(--ink)}
+.rail-btn:hover:not(:disabled){
+  background:var(--ink);color:var(--bone);border-color:var(--ink);
+  transform:translateY(-1px);
+}
+.rail-btn:active:not(:disabled){transform:scale(.9);transition-duration:.06s}
 .rail-btn:disabled{opacity:.28;cursor:default}
 /* draggable scrub: hairline track, pill handle you can grab */
 .scrub{
@@ -493,10 +570,11 @@ html.lenis,html.lenis body{height:auto}
   box-shadow:0 1px 4px rgba(16,26,19,.12);
 }
 .scrub.is-scrubbing .scrub__thumb{cursor:grabbing}
-.rail-hint{
-  flex:none;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-30);
+.rail-count{
+  flex:none;font-family:Fraunces,serif;font-size:.85rem;color:var(--ink-55);
+  letter-spacing:.04em;min-width:5ch;text-align:right;
 }
-@media(max-width:640px){.rail-hint{display:none}}
+.rail-count b{font-weight:600;color:var(--ink)}
 
 @media(prefers-reduced-motion:reduce){
   .rail{scroll-behavior:auto}
@@ -543,14 +621,13 @@ form{display:grid;gap:1.4rem}
   outline:none;border-bottom-color:var(--copper);
 }
 .field input::placeholder,.field textarea::placeholder{color:rgba(243,240,231,.28)}
+/* colour, hover and press all come from .btn-cta — this only sets the sizing */
 .submit{
   justify-self:start;margin-top:.6rem;
-  background:var(--bone);color:var(--ink);border:none;cursor:pointer;
-  font:inherit;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;
-  font-weight:600;padding:1.05rem 2.4rem;border-radius:999px;
-  transition:background .4s var(--ease),color .4s var(--ease);
+  border:none;cursor:pointer;font:inherit;
+  font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:600;padding:1.05rem 2.4rem;
 }
-.submit:hover{background:var(--copper);color:var(--bone)}
 .formnote{font-size:.8rem;color:rgba(243,240,231,.42)}
 
 /* footer */
@@ -564,11 +641,12 @@ form{display:grid;gap:1.4rem}
   justify-content:space-between;align-items:flex-start;
 }
 .foot img{height:54px;width:auto;opacity:.92}
-.foot__links{display:flex;flex-wrap:wrap;gap:1.6rem}
+.foot__links{display:flex;flex-wrap:wrap;gap:.2rem 1.6rem}
 .foot__links a{
   text-decoration:none;font-size:.76rem;letter-spacing:.14em;
   text-transform:uppercase;color:rgba(243,240,231,.6);
   transition:color .35s;
+  padding-block:.6rem;              /* comfortable tap target on a phone */
 }
 .foot__links a:hover{color:var(--copper)}
 .foot__base{
@@ -595,13 +673,22 @@ form{display:grid;gap:1.4rem}
   /* no flight: draw the mark straight into its slot and drop the overlay */
   .flying-mark{display:none}
   .intro__markSlot{background:url(assets/mark-white.png) center/contain no-repeat}
-  .flying-mark.is-stirred .mark2__leaf{animation:none}
   .rv{opacity:1;transform:none}
   .scroll-hint i::after{display:none}
 }
 </style>
 </head>
 <body>
+
+<!-- ============ BOOT ============ -->
+<div class="boot" id="boot" aria-hidden="true">
+  <div class="boot__bg"></div>
+  <div class="boot__mark" id="bootMark">
+    <div class="boot__in">
+      <img class="markimg" src="assets/mark-white.png" alt="">
+    </div>
+  </div>
+</div>
 
 <!-- ============ NAV ============ -->
 <header class="nav" id="nav">
@@ -610,11 +697,10 @@ form{display:grid;gap:1.4rem}
     <a href="#work">Work</a>
     <a href="https://portal.golmn.com/login/V88vZXxBvng6559WZVsSFw/" target="_blank" rel="noopener">Portal</a>
   </nav>
-  <div class="nav__mark" role="img" aria-label="CV Landscaping">
-    <img class="mark2__base" src="assets/mark-base.png" alt="">
-    <img class="mark2__leaf" src="assets/mark-leaf.png" alt="">
-  </div>
-  <div class="nav__right"><a class="cta" href="#contact">Get an estimate</a></div>
+  <a class="nav__mark" id="navHome" href="#top" aria-label="CV Landscaping — back to top">
+    <img class="markimg" src="assets/mark-white.png" alt="">
+  </a>
+  <div class="nav__right"><a class="btn-cta cta" href="#contact">Get an estimate <span class="arw" aria-hidden="true">&rarr;</span></a></div>
 </header>
 
 <!-- ============ 1. OPENING ============ -->
@@ -630,9 +716,9 @@ form{display:grid;gap:1.4rem}
     <div class="intro__grain" aria-hidden="true"></div>
 
     <div class="intro__inner">
-      <div class="intro__eyebrow eyebrow on-dark" id="introEyebrow">
-        <i></i><span>Michigan&nbsp;&middot;&nbsp;The Tri-Cities</span><i></i>
-      </div>
+      <a class="btn-cta intro__cta" id="introCta" href="#contact">
+        Get an estimate <span class="arw" aria-hidden="true">&rarr;</span>
+      </a>
       <div class="intro__markSlot" aria-hidden="true"></div>
       <div class="intro__word" id="introWord">CV Landscaping</div>
     </div>
@@ -645,8 +731,7 @@ form{display:grid;gap:1.4rem}
 
 <!-- Lives outside .intro so it can paint above the nav bar during its flight -->
 <div class="flying-mark" id="introMark" role="img" aria-label="CV Landscaping">
-  <img class="mark2__base" id="introMarkBase" src="assets/mark-base.png" alt="">
-  <img class="mark2__leaf" src="assets/mark-leaf.png" alt="">
+  <img class="markimg" id="introMarkBase" src="assets/mark-white.png" alt="">
 </div>
 
 <!-- ============ 2. MANIFESTO ============ -->
@@ -746,9 +831,9 @@ form{display:grid;gap:1.4rem}
 <section class="reviews" id="reviews">
   <div class="reviews__head">
     <h2 class="serif rv">Top quality service, and the follow-through to match.</h2>
-    <div class="rv rv-d1" style="text-align:right">
+    <div class="reviews__score rv rv-d1">
       <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-      <p class="eyebrow" style="margin-top:.5rem">5.0 &middot; 23 Google reviews</p>
+      <p class="eyebrow">5.0 &middot; 23 Google reviews</p>
     </div>
   </div>
 
@@ -898,7 +983,7 @@ form{display:grid;gap:1.4rem}
       <div class="scrub__fill" id="scrubFill"></div>
       <div class="scrub__thumb" id="scrubThumb"></div>
     </div>
-    <span class="rail-hint">Drag</span>
+    <span class="rail-count"><b id="railNow">1</b> / <span id="railTotal">19</span></span>
   </div>
 </section>
 
@@ -950,7 +1035,7 @@ form{display:grid;gap:1.4rem}
           <label for="msg">What do you need?</label>
           <textarea id="msg" name="msg" placeholder="Weekly mowing, a new bed, snow contract&hellip;"></textarea>
         </div>
-        <button class="submit" type="submit">Request an estimate</button>
+        <button class="btn-cta submit" type="submit">Send inquiry <span class="arw" aria-hidden="true">&rarr;</span></button>
         <p class="formnote" id="formNote">[FORM IS NOT WIRED UP YET &mdash; needs a form handler or email endpoint.]</p>
       </form>
     </div>
@@ -995,6 +1080,26 @@ form{display:grid;gap:1.4rem}
     (function raf(t){ lenis.raf(t); requestAnimationFrame(raf); })(0);
   }
 
+  /* ---- boot: hold the page still while the mark arrives ---- */
+  var boot = document.getElementById('boot');
+  if (boot) {
+    if (reduce) {
+      boot.style.display = 'none';
+    } else {
+      /* No overflow:hidden here — removing the scrollbar and putting it back is
+         what made the page shift. Lenis.stop() already swallows wheel/touch. */
+      document.documentElement.classList.add('booting');
+      if (lenis) lenis.stop();
+      scrollTo(0, 0);
+      addEventListener('pageshow', function(){ scrollTo(0, 0); });
+      setTimeout(function(){
+        document.documentElement.classList.remove('booting');
+        if (lenis) lenis.start();
+        boot.style.display = 'none';
+      }, 1850);
+    }
+  }
+
   /* in-page links glide instead of jumping */
   document.addEventListener('click', function(e){
     var a = e.target.closest && e.target.closest('a[href^="#"]');
@@ -1004,8 +1109,13 @@ form{display:grid;gap:1.4rem}
     var el = document.querySelector(id);
     if (!el) return;
     e.preventDefault();
-    if (lenis) lenis.scrollTo(el, {offset: 0});
-    else el.scrollIntoView({behavior: reduce ? 'auto' : 'smooth'});
+    /* clear the fixed bar, or the section's first line lands underneath it */
+    var navH = nav ? nav.getBoundingClientRect().height : 0;
+    if (lenis) lenis.scrollTo(el, {offset: -navH});
+    else {
+      var y = el.getBoundingClientRect().top + scrollY - navH;
+      scrollTo({top: y, behavior: reduce ? 'auto' : 'smooth'});
+    }
   });
 
   /* year */
@@ -1019,7 +1129,7 @@ form{display:grid;gap:1.4rem}
   var navMark  = document.querySelector('.nav__mark');
   var intro    = document.getElementById('top');
   var mark     = document.getElementById('introMark');
-  var eyebrow  = document.getElementById('introEyebrow');
+  var eyebrow  = document.getElementById('introCta');
   var word     = document.getElementById('introWord');
   var hint     = document.getElementById('scrollHint');
   var bg       = document.getElementById('introBg');
@@ -1045,6 +1155,16 @@ form{display:grid;gap:1.4rem}
     mark.style.left  = parkedLeft + 'px';
     mark.style.top   = parkedTop + 'px';
 
+    /* the boot mark sits on the same box, so when the ink clears the two are
+       pixel-identical and the handoff can't be seen */
+    var bm = document.getElementById('bootMark');
+    if (bm) {
+      bm.style.transform = 'none';
+      bm.style.width = m.width + 'px';
+      bm.style.left  = parkedLeft + 'px';
+      bm.style.top   = parkedTop + 'px';
+    }
+
     var wasLanded = navMark.classList.contains('landed');
     navMark.classList.add('landed');
     var n = navMark.getBoundingClientRect();
@@ -1068,7 +1188,7 @@ form{display:grid;gap:1.4rem}
 
   /* Smoothing: scroll sets a target, a rAF loop eases the rendered value
      toward it. Raw scroll is steppy on a wheel; this glides. */
-  var target = 0, current = 0, rafId = 0, docked = false, stirred = false;
+  var target = 0, current = 0, rafId = 0, docked = false;
 
   function readTarget(){
     if (!intro) return 0;
@@ -1089,6 +1209,7 @@ form{display:grid;gap:1.4rem}
       var fade = clamp01(q / 0.45);
       eyebrow.style.opacity = String(1 - fade);
       eyebrow.style.transform = 'translateY(' + (fade * -18) + 'px)';
+      eyebrow.style.pointerEvents = fade > 0.5 ? 'none' : 'auto';
       word.style.opacity = String(1 - fade);
       word.style.transform = 'translateY(' + (fade * 14) + 'px)';
       hint.style.opacity = String(1 - clamp01(q / 0.3));
@@ -1101,15 +1222,9 @@ form{display:grid;gap:1.4rem}
     if (docked) { if (q < 0.97) docked = false; }
     else        { if (q >= 0.999) docked = true; }
 
-    /* First flicker of scroll stirs the leaf. Rearms once you come back to the
-       very top, so it plays again on the next run down. */
-    if (!stirred && q > 0.012 && q < 0.6) {
-      stirred = true; mark.classList.add('is-stirred');
-    } else if (stirred && q < 0.004) {
-      stirred = false; mark.classList.remove('is-stirred');
-    }
-
-    nav.classList.toggle('show', q > 0.45);
+    /* bar arrives while the hero button is still fading, so there is never a
+       moment with no "Get an estimate" on screen */
+    nav.classList.toggle('show', q > 0.28);
     navMark.classList.toggle('landed', docked);
     if (!reduce) mark.style.opacity = docked ? '0' : '1';
   }
@@ -1224,43 +1339,58 @@ form{display:grid;gap:1.4rem}
     var scrub = document.getElementById('railScrub');
     var thumb = document.getElementById('scrubThumb');
     var fill  = document.getElementById('scrubFill');
+    var nowEl = document.getElementById('railNow');
+    var totEl = document.getElementById('railTotal');
+    if (totEl) totEl.textContent = document.querySelectorAll('.rcard').length;
 
-    /* Start the cards at the page's left content edge (same line as the
-       heading), not centred. Trailing pad lets the last card clear the edge. */
+    /* Pad both ends by half a gap-less slot so the first and last card can sit
+       dead centre — the focused card is always the middle one on screen. */
     var padLeft = 0;
     function pad(){
       if (!cards.length) return;
-      var head = document.querySelector('.reviews__head');
-      if (head) {
-        var hr = head.getBoundingClientRect();
-        padLeft = hr.left + parseFloat(getComputedStyle(head).paddingLeft || 0);
-      } else {
-        padLeft = 24;
-      }
+      var cw = rail.clientWidth;
+      var gap = parseFloat(getComputedStyle(rail).columnGap) || 0;
+      /* three across on a wide screen, one on a phone */
+      var per = cw < 820 ? 1 : 3;
+      var card = per === 1 ? cw * 0.84 : (cw - gap * (per - 1)) / per;
+      rail.style.setProperty('--cardw', Math.round(card) + 'px');
+      /* Half-slot pad on both ends so the FIRST card starts dead centre with
+         nothing to its left, and the LAST one can still reach the centre — so
+         every review is reachable. */
+      padLeft = Math.max(0, (cw - card) / 2);
       rail.style.paddingLeft = padLeft + 'px';
-      rail.style.paddingRight = Math.max(padLeft, 24) + 'px';
+      rail.style.paddingRight = padLeft + 'px';
     }
 
     var ticking = false;
     function render(){
       ticking = false;
-      /* focal point is the card sitting at the left edge, so the leftmost card
-         reads as the front one and the rest recede to the right */
-      var mid = rail.scrollLeft + padLeft + (cards[0] ? cards[0].offsetWidth / 2 : 0);
+      /* focal point is the centre of the rail: the middle card is the one in focus */
+      var mid = rail.scrollLeft + rail.clientWidth / 2;
+      /* find the one card in focus, then push everything else well back so a
+         single review reads as "the one you're on" */
+      var best = 0, bestD = Infinity;
       for (var i = 0; i < cards.length; i++) {
+        var dist = Math.abs((cards[i].offsetLeft + cards[i].offsetWidth / 2) - mid);
+        if (dist < bestD) { bestD = dist; best = i; }
+      }
+      for (i = 0; i < cards.length; i++) {
         var c = cards[i];
         var cc = c.offsetLeft + c.offsetWidth / 2;
-        var d  = (cc - mid) / rail.clientWidth;        /* -1 .. 1 across the viewport */
+        var d  = (cc - mid) / rail.clientWidth;
         var ad = Math.min(Math.abs(d), 1);
+        var fall = Math.min(ad * 2.4, 1);             /* steep: neighbours drop fast */
         if (!reduce) {
           inners[i].style.transform =
-            'translateZ(' + (-150 * ad).toFixed(1) + 'px) ' +
-            'rotateY(' + (-13 * d).toFixed(2) + 'deg) ' +
-            'scale(' + (1 - 0.10 * ad).toFixed(4) + ')';
-          inners[i].style.opacity = (1 - 0.55 * ad).toFixed(3);
+            'translateZ(' + (-190 * fall).toFixed(1) + 'px) ' +
+            'rotateY(' + (-14 * d).toFixed(2) + 'deg) ' +
+            'scale(' + (1 - 0.14 * fall).toFixed(4) + ')';
+          inners[i].style.opacity = (1 - 0.74 * fall).toFixed(3);
         }
-        c.classList.toggle('is-near', ad < 0.18);
+        c.classList.toggle('is-focus', i === best);
       }
+      if (nowEl) nowEl.textContent = best + 1;
+
       var max = rail.scrollWidth - rail.clientWidth;
       var frac = max > 0 ? rail.scrollLeft / max : 0;
       if (!scrubbing) placeThumb(frac);
@@ -1269,7 +1399,7 @@ form{display:grid;gap:1.4rem}
     }
     /* Guaranteed cleanup: whichever way a glide ends (landed, cancelled by a
        wheel, interrupted), once the rail has been still for a moment and
-       nothing is holding it, snapping comes back on. */
+       nothing is holding it, snapping/dragging state is released. */
     var idleT = 0;
     function armIdle(){
       clearTimeout(idleT);
@@ -1368,6 +1498,19 @@ form{display:grid;gap:1.4rem}
       if (e.key === 'ArrowLeft')  { e.preventDefault(); step(-1); }
     });
 
+    /* click any card to centre it (a drag is filtered out below) */
+    function centreOn(i){
+      var c = cards[i];
+      easeRailTo(c.offsetLeft + c.offsetWidth / 2 - rail.clientWidth / 2);
+    }
+    cards.forEach(function(c,i){
+      c.addEventListener('click', function(){ if (!moved) centreOn(i); });
+      c.setAttribute('tabindex','0');
+      c.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); centreOn(i); }
+      });
+    });
+
     /* Step by one card. Track an explicit target rather than scrollBy: a second
        click while a smooth scroll is still running would otherwise re-base off
        the in-flight position and swallow the step. */
@@ -1416,7 +1559,9 @@ form{display:grid;gap:1.4rem}
     rail.addEventListener('pointermove', function(e){
       if (!down) return;
       var dx = e.clientX - startX;
-      if (!moved && Math.abs(dx) > 4) { moved = true; rail.classList.add('is-dragging'); }
+      /* 4px was tighter than a real hand: people slide a few pixels while
+         clicking, and every one of those clicks was being eaten as a drag. */
+      if (!moved && Math.abs(dx) > 12) { moved = true; rail.classList.add('is-dragging'); }
       if (!moved) return;
       rail.scrollLeft = startScroll - dx;
       var now = performance.now(), dt = now - lastT;
@@ -1428,7 +1573,14 @@ form{display:grid;gap:1.4rem}
       if (!down) return;
       down = false;
       try { rail.releasePointerCapture(e.pointerId); } catch (err) {}
-      if (!moved) return;
+      if (!moved) {
+        /* A press that never became a drag is a click. Pointer capture retargets
+           the event to the rail, so find the card by position instead. */
+        var el = document.elementFromPoint(e.clientX, e.clientY);
+        var card = el && el.closest ? el.closest('.rcard') : null;
+        if (card) { var i = cards.indexOf(card); if (i > -1) centreOn(i); }
+        return;
+      }
       rail.classList.remove('is-dragging');
       /* coast, then let snap take over once it is slow enough */
       var v = vel * 16;                       /* per frame */
