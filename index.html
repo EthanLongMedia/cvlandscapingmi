@@ -592,12 +592,17 @@ html.lenis,html.lenis body{height:auto}
    ============================================================ */
 .contact{
   background:var(--ink);color:var(--bone);
-  /* One screen MINUS the bar. Scrolled to the bottom, the green runs from the
-     bar's lower edge to the bottom of the window, so the bar sits flush on top
-     of it covering the bone section instead of overlapping the green. */
-  min-height:calc(100svh - var(--navh, 68px));
+  /* A full screen, and the content is pushed clear of the bar with padding.
+     The bar is 82% opaque, so stopping the green at its lower edge let the
+     bone section show through it. Running the green up behind the bar means
+     the bar is tinting green, not white. */
+  /* Slightly taller than the screen and pulled up, so at the page bottom its
+     top edge sits above the viewport. Document heights are fractional, and at
+     exactly 100svh that left a 0.4px hairline of bone at the top. */
+  min-height:calc(100svh + 12px);
+  margin-top:-12px;
   display:flex;
-  padding-block-start:clamp(3.25rem,8vh,6.5rem);
+  padding-block-start:calc(var(--navh, 68px) + clamp(1.5rem,4.5vh,3.5rem));
 }
 .contact > .wrap{flex:1;display:flex;flex-direction:column;width:100%}
 .contact__grid{flex:1;align-content:center}
