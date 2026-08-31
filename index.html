@@ -1931,59 +1931,5 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   });
 })();
 </script>
-
-<script>
-/* ---- in-app browser escape ------------------------------------------------
-   Instagram and Facebook do not hand links to a browser — they render them in
-   an embedded webview with no address bar. This detects that specific case from
-   the app's own user-agent token and tries once to hand the visitor to Safari.
-
-   Silent by design: if the jump is refused, nothing is shown and the visitor
-   simply carries on in the webview. Deliberately narrow, so a normal
-   Safari/Chrome/Firefox visitor is never touched.
-   Kept in its own script so nothing here can take the page down with it.  ---- */
-(function(){
-  try {
-    var ua = navigator.userAgent || '';
-
-    var apps = [
-      /Instagram/i,
-      /FBAN|FBAV|FB_IAB|FBIOS/i,
-      /TikTok|BytedanceWebview|musical_ly/i,
-      /Snapchat/i,
-      /LinkedInApp/i,
-      /Pinterest/i,
-      /\bLine\//i
-    ];
-    var inApp = false;
-    for (var i = 0; i < apps.length; i++) {
-      if (apps[i].test(ua)) { inApp = true; break; }
-    }
-    if (!inApp) return;                     /* a real browser — leave it alone */
-
-    var iOS     = /iPhone|iPad|iPod/i.test(ua);
-    var android = /Android/i.test(ua);
-    if (!iOS && !android) return;
-
-    /* once per session, or a refused jump would retry on every page view */
-    try {
-      if (sessionStorage.getItem('cv-iab-tried') === '1') return;
-      sessionStorage.setItem('cv-iab-tried', '1');
-    } catch (e) {}
-
-    var bare = location.href.replace(/^https?:\/\//i, '');
-    /* x-safari-https:// is the documented way out of a webview on iOS; on
-       Android the equivalent is an intent that names Chrome explicitly. */
-    var escapeURL = iOS
-      ? 'x-safari-https://' + bare
-      : 'intent://' + bare + '#Intent;scheme=https;package=com.android.chrome;end';
-
-    /* wait for the boot to clear so the jump does not fight first paint */
-    setTimeout(function(){
-      try { location.href = escapeURL; } catch (e) {}
-    }, 1800);
-  } catch (e) { /* never let this break the page */ }
-})();
-</script>
 </body>
 </html>
