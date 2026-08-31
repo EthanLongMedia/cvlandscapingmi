@@ -728,6 +728,40 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
 .formnote.is-hidden{opacity:0;transform:translateY(5px)}
 .formnote.is-sent{color:rgba(243,240,231,.82);font-size:.92rem}
 
+/* ---- in-app browser escape ----
+   Instagram and Facebook open links in their own embedded webview instead of
+   a browser. We try to hand the visitor to Safari; this bar is what they get
+   if that jump is refused, which it sometimes is. Never shown in a real
+   browser — the detection is on the app's own user-agent string. ---- */
+.iab{
+  position:fixed;left:0;right:0;bottom:0;z-index:300;
+  display:flex;align-items:center;gap:.9rem;
+  padding:.9rem calc(var(--gut) * .6) calc(.9rem + env(safe-area-inset-bottom));
+  background:rgba(16,26,19,.94);
+  -webkit-backdrop-filter:saturate(150%) blur(14px);
+          backdrop-filter:saturate(150%) blur(14px);
+  border-top:1px solid rgba(243,240,231,.16);
+  transform:translateY(102%);
+  transition:transform .5s cubic-bezier(.22,.9,.3,1);
+}
+.iab.is-up{transform:translateY(0)}
+.iab[hidden]{display:none}
+.iab p{
+  margin:0;flex:1;color:rgba(243,240,231,.74);
+  font-size:.82rem;line-height:1.45;
+}
+.iab__go{
+  flex:none;text-decoration:none;white-space:nowrap;
+  background:var(--bone);color:var(--ink);border-radius:999px;
+  padding:.62rem 1.2rem;font-size:.74rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+}
+.iab__x{
+  flex:none;background:none;border:none;cursor:pointer;
+  color:rgba(243,240,231,.5);font-size:1.4rem;line-height:1;
+  padding:.2rem .4rem;
+}
+
 @media(prefers-reduced-motion:reduce){
   .submit.is-sent{animation:none}
   .submit.is-sent .submit__check path{animation:none;stroke-dashoffset:0}
@@ -807,6 +841,12 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
 <body>
 
 <!-- ============ BOOT ============ -->
+<div class="iab" id="iabBar" hidden>
+  <p id="iabMsg">Open in Safari for the full site.</p>
+  <a class="iab__go" id="iabGo" href="#">Open</a>
+  <button class="iab__x" id="iabX" type="button" aria-label="Dismiss">&times;</button>
+</div>
+
 <div class="boot" id="boot" aria-hidden="true">
   <div class="boot__bg"></div>
   <div class="boot__stripes"></div>
@@ -1927,6 +1967,100 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
         + '&body=' + encodeURIComponent(body) + '" style="color:inherit">' + TO + '</a>.', true);
     });
   });
+})();
+</script>
+
+<script>
+/* ---- in-app browser escape ------------------------------------------------
+   Instagram and Facebook (and the other social apps) do not hand links to a
+   browser — they render them in an embedded webview with no address bar. This
+   detects that specific case and offers the visitor a way out to Safari.
+
+   Deliberately narrow: it keys off the app's own user-agent token, so a normal
+   Safari/Chrome/Firefox visitor never sees any of it. A website cannot pick a
+   browser, so the redirect is an attempt, not a guarantee — the bar is what
+   catches the visitor when the jump is refused.
+   Kept in its own script so nothing here can take the page down with it.  ---- */
+(function(){
+  try {
+    var ua = navigator.userAgent || '';
+
+    /* ?preview-iab=Instagram renders the bar in any browser without attempting
+       the jump, so the thing can actually be looked at and tested. */
+    var preview = (location.search.match(/[?&]preview-iab=([^&]+)/) || [])[1];
+    if (preview) ua = decodeURIComponent(preview) + ' iPhone';
+
+    var apps = [
+      [/Instagram/i,                        'Instagram'],
+      [/FBAN|FBAV|FB_IAB|FBIOS/i,           'Facebook'],
+      [/TikTok|BytedanceWebview|musical_ly/i,'TikTok'],
+      [/Snapchat/i,                         'Snapchat'],
+      [/LinkedInApp/i,                      'LinkedIn'],
+      [/Pinterest/i,                        'Pinterest'],
+      [/\bLine\//i,                         'LINE']
+    ];
+    var app = null;
+    for (var i = 0; i < apps.length; i++) {
+      if (apps[i][0].test(ua)) { app = apps[i][1]; break; }
+    }
+    if (!app) return;                       /* a real browser — leave it alone */
+
+    var iOS     = /iPhone|iPad|iPod/i.test(ua);
+    var android = /Android/i.test(ua);
+    if (!iOS && !android) return;
+
+    var bare   = location.href.replace(/^https?:\/\//i, '');
+    /* x-safari-https:// is the documented way out of a webview on iOS; on
+       Android the equivalent is an intent that names Chrome explicitly. */
+    var escapeURL = iOS
+      ? 'x-safari-https://' + bare
+      : 'intent://' + bare + '#Intent;scheme=https;package=com.android.chrome;end';
+    var target = iOS ? 'Safari' : 'Chrome';
+
+    var bar = document.getElementById('iabBar');
+    var go  = document.getElementById('iabGo');
+    var msg = document.getElementById('iabMsg');
+    var x   = document.getElementById('iabX');
+    if (!bar || !go || !msg || !x) return;
+
+    go.setAttribute('href', escapeURL);
+    go.textContent = 'Open';
+    msg.textContent = 'You are in the ' + app + ' browser. Open in ' + target + ' for the full site.';
+
+    function showBar(){
+      if (sessionStorage.getItem('cv-iab-dismissed') === '1') return;
+      bar.hidden = false;
+      requestAnimationFrame(function(){ bar.classList.add('is-up'); });
+    }
+    function hideBar(){
+      bar.classList.remove('is-up');
+      setTimeout(function(){ bar.hidden = true; }, 500);
+      try { sessionStorage.setItem('cv-iab-dismissed', '1'); } catch (e) {}
+    }
+    x.addEventListener('click', hideBar);
+
+    /* Try the jump once per session. If it lands, this page is backgrounded and
+       the timer never matters; if it is refused we are still here, so raise the
+       bar and let the visitor decide. */
+    var tried = false;
+    try { tried = sessionStorage.getItem('cv-iab-tried') === '1'; } catch (e) {}
+
+    if (preview) { setTimeout(showBar, 1800); return; }   /* look, do not leap */
+    if (tried) { showBar(); return; }
+    try { sessionStorage.setItem('cv-iab-tried', '1'); } catch (e) {}
+
+    /* wait for the boot to clear so the jump does not fight first paint */
+    setTimeout(function(){
+      var left = false;
+      var onHide = function(){ if (document.hidden) left = true; };
+      document.addEventListener('visibilitychange', onHide);
+      try { location.href = escapeURL; } catch (e) {}
+      setTimeout(function(){
+        document.removeEventListener('visibilitychange', onHide);
+        if (!left && !document.hidden) showBar();
+      }, 1400);
+    }, 1800);
+  } catch (e) { /* never let this break the page */ }
 })();
 </script>
 </body>
