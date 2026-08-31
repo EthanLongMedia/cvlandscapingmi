@@ -8,6 +8,23 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Commercial site management, residential lawn maintenance and landscape installation across Michigan's Tri-Cities. Based in Hemlock, MI. Est. 2019. (989) 574-6617.">
 <link rel="icon" href="assets/mark-ink.png">
+
+<!-- Link preview. Without these the site arrives as a bare URL when it is
+     texted or emailed, which is exactly how it reaches a client. Absolute
+     URLs are required — preview crawlers do not resolve relative paths. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CV Landscaping">
+<meta property="og:title" content="CV Landscaping — The Tri-Cities' Premier Lawn &amp; Landscape Company">
+<meta property="og:description" content="Commercial site management, residential lawn maintenance and landscape installation across Michigan's Tri-Cities. Based in Hemlock, MI. Est. 2019.">
+<meta property="og:url" content="https://ethanlongmedia.github.io/cvlandscapingmi/">
+<meta property="og:image" content="https://ethanlongmedia.github.io/cvlandscapingmi/assets/og-cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Aerial view of a striped lawn and landscaped beds at a Tri-Cities home">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CV Landscaping — The Tri-Cities' Premier Lawn &amp; Landscape Company">
+<meta name="twitter:description" content="Commercial site management, residential lawn maintenance and landscape installation across Michigan's Tri-Cities. Based in Hemlock, MI. Est. 2019.">
+<meta name="twitter:image" content="https://ethanlongmedia.github.io/cvlandscapingmi/assets/og-cover.jpg">
 <script>
 /* Refresh should start at the top, not wherever you happened to be. Set before
    first paint so the browser never restores the old scroll position. */
@@ -1810,11 +1827,13 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
      ever fails we fall back to handing it to the visitor's mail app. ---- */
   var form = document.getElementById('quoteForm');
   var note = document.getElementById('formNote');
-  /* Pitch setting: inquiries come to Ethan while the site is being shown to
-     Carter. Swap DELIVER_TO back to sales@cvlandscapingmi.com when it goes
-     live — that address then has to confirm its own FormSubmit activation. */
-  var TO         = 'sales@cvlandscapingmi.com';   /* shown on the page */
-  var DELIVER_TO = 'enemycannon161@gmail.com';    /* where the form actually posts */
+  /* Inquiries go to CV. NOTE: FormSubmit activates per address — the FIRST
+     submission to an unactivated address is swallowed and an "Activate Form"
+     email is sent to it instead. Someone at sales@cvlandscapingmi.com has to
+     click that once; until then inquiries do not arrive, even though the
+     button still says Sent. */
+  var TO         = 'sales@cvlandscapingmi.com';
+  var DELIVER_TO = 'sales@cvlandscapingmi.com';
   var ENDPOINT = 'https://formsubmit.co/ajax/' + DELIVER_TO;
 
   /* type the digits, the dashes appear: 989-574-6617 */
