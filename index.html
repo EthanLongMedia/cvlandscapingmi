@@ -695,7 +695,10 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   /* the form column is the tall one — this is where the height actually is */
   form,.f2{gap:.7rem}
   .field label{margin-bottom:.3rem;font-size:.62rem}
-  .field input,.field select,.field textarea{padding:.4rem 0;font-size:.95rem}
+  /* Padding gives the height back, NOT font-size: iOS Safari force-zooms the
+     whole page when you focus a field under 16px, and once it is zoomed you can
+     pan sideways off the layout. 1rem is the floor here, permanently. */
+  .field input,.field select,.field textarea{padding:.4rem 0;font-size:1rem}
   .field textarea{min-height:54px}
   .submit{padding:.8rem 1.9rem;margin-top:.2rem}
   .formnote{font-size:.72rem}
@@ -1345,7 +1348,18 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   }
 
   addEventListener('scroll', kick, {passive:true});
-  addEventListener('resize', function(){ measure(); snap(); });
+  /* Mobile browsers collapse and re-show their toolbars as you scroll, and each
+     transition fires resize with ONLY the height changed. Re-measuring there
+     runs snap() mid-scroll, which cancels the eased frame and repaints from
+     scratch — that is the jump you feel while dragging. A width change is a
+     real one (rotation, a desktop window resize), so those still re-measure. */
+  var lastW = innerWidth;
+  addEventListener('resize', function(){
+    var widthChanged = innerWidth !== lastW;
+    lastW = innerWidth;
+    if (!widthChanged && matchMedia('(pointer:coarse)').matches) return;
+    measure(); snap();
+  });
   /* coming back to a backgrounded tab: land wherever the scroll actually is */
   document.addEventListener('visibilitychange', function(){ if (!document.hidden) snap(); });
 
