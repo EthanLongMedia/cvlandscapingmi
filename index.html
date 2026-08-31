@@ -596,11 +596,11 @@ html.lenis,html.lenis body{height:auto}
      The bar is 82% opaque, so stopping the green at its lower edge let the
      bone section show through it. Running the green up behind the bar means
      the bar is tinting green, not white. */
-  /* Slightly taller than the screen and pulled up, so at the page bottom its
-     top edge sits above the viewport. Document heights are fractional, and at
-     exactly 100svh that left a 0.4px hairline of bone at the top. */
-  min-height:calc(100svh + 12px);
-  margin-top:-12px;
+  /* Exactly one screen, so the whole section is visible without scrolling.
+     The sub-pixel hairline at the top edge is covered by painting ink above
+     the box with a shadow — that costs no layout height. */
+  min-height:100svh;
+  box-shadow:0 -16px 0 0 var(--ink);
   display:flex;
   padding-block-start:calc(var(--navh, 68px) + clamp(1.5rem,4.5vh,3.5rem));
 }
