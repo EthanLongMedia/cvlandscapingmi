@@ -1076,7 +1076,7 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
           <textarea id="msg" name="msg" placeholder="Weekly mowing, a new bed, snow contract&hellip;"></textarea>
         </div>
         <button class="btn-cta submit" type="submit">Send inquiry <span class="arw" aria-hidden="true">&rarr;</span></button>
-        <p class="formnote" id="formNote">[FORM IS NOT WIRED UP YET &mdash; needs a form handler or email endpoint.]</p>
+        <p class="formnote" id="formNote">Goes straight to sales@cvlandscapingmi.com.</p>
       </form>
     </div>
 
@@ -1678,13 +1678,53 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ pad(); render(); });
   })();
 
-  /* ---- form (not wired to a backend yet) ---- */
+  /* ---- form -> email ----
+     Static hosting means there's no server to post to, so the form composes
+     the enquiry and hands it to the visitor's mail app addressed to CV. ---- */
   var form = document.getElementById('quoteForm');
   var note = document.getElementById('formNote');
+  var TO   = 'sales@cvlandscapingmi.com';
+
   form.addEventListener('submit', function(ev){
     ev.preventDefault();
-    note.textContent = 'This form has no destination yet — add a handler before launch. Nothing was sent.';
-    note.style.color = '#A9702F';
+
+    var get = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+    var name = get('name'), phone = get('phone'), email = get('email');
+    var type = get('type'), addr = get('addr'), msg = get('msg');
+
+    var missing = [];
+    if (!name)  missing.push('name');
+    if (!phone) missing.push('phone');
+    if (!email) missing.push('email');
+    if (missing.length) {
+      note.textContent = 'Please add your ' + missing.join(', ') + '.';
+      note.style.color = '#A9702F';
+      var first = document.getElementById(missing[0]);
+      if (first) first.focus();
+      return;
+    }
+
+    var body = [
+      'Name: '           + name,
+      'Phone: '          + phone,
+      'Email: '          + email,
+      'Property type: '  + type,
+      'Address: '        + (addr || '—'),
+      '',
+      'What they need:',
+      msg || '—',
+      '',
+      '— Sent from cvlandscapingmi.com'
+    ].join('\n');
+
+    var href = 'mailto:' + TO
+             + '?subject=' + encodeURIComponent('Estimate request — ' + name)
+             + '&body='    + encodeURIComponent(body);
+
+    note.innerHTML = 'Opening your email app&hellip; if nothing happens, send it to '
+                   + '<a href="mailto:' + TO + '" style="color:inherit">' + TO + '</a>.';
+    note.style.color = 'rgba(243,240,231,.72)';
+    window.location.href = href;
   });
 })();
 </script>
