@@ -590,13 +590,21 @@ html.lenis,html.lenis body{height:auto}
 /* ============================================================
    7 — CONTACT
    ============================================================ */
-.contact{background:var(--ink);color:var(--bone);padding-block-start:clamp(2.4rem,6.5vh,5rem)}
+.contact{
+  background:var(--ink);color:var(--bone);
+  min-height:100svh;                       /* the green fills the screen */
+  display:flex;
+  padding-block-start:clamp(3.25rem,8vh,6.5rem);
+}
+.contact > .wrap{flex:1;display:flex;flex-direction:column;width:100%}
+.contact__grid{flex:1;align-content:center}
+.contact .foot{margin-top:auto}
 .contact .eyebrow{color:rgba(243,240,231,.5)}
-.contact__grid{display:grid;gap:clamp(2rem,4vw,4rem);grid-template-columns:1fr;align-items:start}
+.contact__grid{display:grid;gap:clamp(2.25rem,4.5vw,4.5rem);grid-template-columns:1fr;align-items:start}
 @media(min-width:940px){.contact__grid{grid-template-columns:.85fr 1.15fr}}
 .contact h2{font-size:var(--d2);margin-top:.9rem;max-width:14ch}
-.contact__aside p{color:rgba(243,240,231,.62);margin-top:1rem;max-width:38ch}
-.contact__direct{margin-top:clamp(1.25rem,2.5vw,1.9rem);display:grid;gap:.9rem}
+.contact__aside p{color:rgba(243,240,231,.62);margin-top:1.25rem;max-width:38ch}
+.contact__direct{margin-top:clamp(1.6rem,3.5vh,2.6rem);display:grid;gap:clamp(.9rem,1.8vh,1.3rem)}
 .contact__direct a{
   text-decoration:none;font-family:Fraunces,serif;
   font-variation-settings:"SOFT" 40,"WONK" 1;
@@ -606,21 +614,21 @@ html.lenis,html.lenis body{height:auto}
 }
 .contact__direct a:hover{border-color:var(--copper);color:var(--copper)}
 
-form{display:grid;gap:1rem}
-.f2{display:grid;gap:1rem}
+form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
+.f2{display:grid;gap:clamp(1rem,2vh,1.5rem)}
 @media(min-width:620px){.f2{grid-template-columns:1fr 1fr}}
 .field{position:relative}
 .field label{
   display:block;font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;
-  color:rgba(243,240,231,.5);margin-bottom:.4rem;font-weight:500;
+  color:rgba(243,240,231,.5);margin-bottom:.55rem;font-weight:500;
 }
 .field input,.field select,.field textarea{
   width:100%;background:transparent;color:var(--bone);
   border:none;border-bottom:1px solid rgba(243,240,231,.26);
-  padding:.5rem 0;font:inherit;font-size:1rem;border-radius:0;
+  padding:.6rem 0;font:inherit;font-size:1rem;border-radius:0;
   transition:border-color .4s var(--ease);
 }
-.field textarea{resize:vertical;min-height:68px}
+.field textarea{resize:vertical;min-height:clamp(68px,10vh,104px)}
 .field select{appearance:none;cursor:pointer}
 .field select option{background:var(--ink);color:var(--bone)}
 .field input:focus,.field select:focus,.field textarea:focus{
@@ -632,15 +640,15 @@ form{display:grid;gap:1rem}
   justify-self:start;margin-top:.6rem;
   border:none;cursor:pointer;font:inherit;
   font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;
-  font-weight:600;padding:.9rem 2.1rem;
+  font-weight:600;padding:1rem 2.3rem;
 }
 .formnote{font-size:.8rem;color:rgba(243,240,231,.42)}
 
 /* footer */
 .foot{
-  margin-top:clamp(1.15rem,3vh,2.75rem);
+  margin-top:clamp(1.5rem,3.5vh,3rem);
   border-top:1px solid rgba(243,240,231,.16);
-  padding:clamp(1.4rem,2.8vw,2rem) 0 .9rem;
+  padding:clamp(1.5rem,3vw,2.25rem) 0 1.25rem;
 }
 .foot__grid{
   display:flex;flex-wrap:wrap;gap:2rem;
