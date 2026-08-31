@@ -51,7 +51,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
    overscroll-behavior-x stops the horizontal rubber-band (and Android's
    back-swipe) from happening at all. */
 html{-webkit-text-size-adjust:100%;scroll-behavior:auto;scrollbar-gutter:stable;
-  background:var(--ink);overscroll-behavior-x:none}
+  background:var(--ink);overscroll-behavior:none}
 body{
   margin:0;background:var(--bone);color:var(--ink);
   font-family:Inter,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
@@ -105,14 +105,51 @@ p{margin:0}
   /* no drop-shadow: the veil already gives the mark 6:1 contrast, and a
      44px blur just haloed it against the photo */
 }
+/* Two mower passes sweep the ink, and the mark is cut in behind them the way
+   a stripe appears behind the deck. Nothing here runs until JS has parked the
+   mark over the hero slot (.is-ready) — the old version animated on a timer, so
+   on a cold cache the mark showed centred and then jumped when JS caught up. */
+.boot__stripes{
+  position:absolute;inset:-20% -55%;pointer-events:none;opacity:0;
+  background:linear-gradient(100deg,
+    rgba(243,240,231,0)    0 40%,
+    rgba(243,240,231,.05) 47%,
+    rgba(243,240,231,.10) 50%,
+    rgba(243,240,231,.05) 53%,
+    rgba(243,240,231,0)   60% 100%);
+}
+.boot.is-ready .boot__stripes{
+  animation:bootStripes 1.25s cubic-bezier(.3,.75,.2,1) forwards;
+}
+@keyframes bootStripes{
+  0%  {opacity:0;transform:translate3d(-42%,0,0)}
+  25% {opacity:1}
+  75% {opacity:1}
+  100%{opacity:0;transform:translate3d(42%,0,0)}
+}
 .boot__in{
   position:absolute;inset:0;opacity:0;transform-origin:50% 50%;
-  animation:bootIn .8s cubic-bezier(.2,.8,.3,1) .08s forwards;
 }
-@keyframes bootIn{
-  0%  {opacity:0;transform:scale(.86);filter:blur(3px)}
-  55% {opacity:1}
-  100%{opacity:1;transform:scale(1);filter:blur(0)}
+.boot.is-ready .boot__in{
+  animation:bootWipe .9s cubic-bezier(.22,.9,.24,1) .1s forwards;
+  /* the deck passes left to right and the mark is left behind it */
+  -webkit-mask-image:linear-gradient(100deg,#000 0 30%,rgba(0,0,0,.15) 44%,#000 58% 100%);
+          mask-image:linear-gradient(100deg,#000 0 30%,rgba(0,0,0,.15) 44%,#000 58% 100%);
+  -webkit-mask-size:320% 100%;         mask-size:320% 100%;
+  -webkit-mask-repeat:no-repeat;       mask-repeat:no-repeat;
+}
+@keyframes bootWipe{
+  0%  {opacity:0;transform:scale(.94);
+       -webkit-mask-position:100% 0;   mask-position:100% 0}
+  35% {opacity:1}
+  100%{opacity:1;transform:scale(1);
+       -webkit-mask-position:0% 0;     mask-position:0% 0}
+}
+/* Cross-dissolve out rather than cutting: if the parked box is ever a pixel or
+   two off, a dissolve hides it where a hard swap would show a pop. */
+.boot.is-clearing .boot__in{
+  opacity:0;transform:scale(1.015);
+  transition:opacity .5s ease-out,transform .7s cubic-bezier(.2,.8,.3,1);
 }
 /* Only one mark on screen at a time: the real one stays hidden until the boot
    copy is removed. They occupy the same box, so the swap is invisible. */
@@ -732,6 +769,7 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
 <!-- ============ BOOT ============ -->
 <div class="boot" id="boot" aria-hidden="true">
   <div class="boot__bg"></div>
+  <div class="boot__stripes"></div>
   <div class="boot__mark" id="bootMark">
     <div class="boot__in">
       <img class="markimg" src="assets/mark-white.png" alt="">
@@ -1145,12 +1183,17 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
       /* The ink is a cover for the hero photo loading, not a fixed wait. It
          lifts the moment the photo has decoded — but never before the CV has
          finished arriving (FLOOR), and never later than CEIL on a bad signal. */
-      var FLOOR = 950, CEIL = 2500, FADE = 700;
+      /* FLOOR clears the wipe (.1s delay + .9s) so the mark is never cut off
+         mid-reveal; CEIL is the bad-signal ceiling. */
+      var FLOOR = 1100, CEIL = 2500, FADE = 700;
       var t0 = performance.now(), cleared = false;
 
       function clearBoot(){
         if (cleared) return;
         cleared = true;
+        /* Last re-measure before the ink lifts. By now the webfonts have
+           settled, so this is the parked box the hero will actually use. */
+        if (window.__cvRemeasure) window.__cvRemeasure();
         boot.classList.add('is-clearing');
         setTimeout(function(){
           document.documentElement.classList.remove('booting');
@@ -1224,9 +1267,11 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
 
   var flight = null;                 /* {dx, dy, scale} */
   var DOCK   = 0.72;                 /* docked at 72% of the pin (~40vh of scroll) */
+  var vpH    = innerHeight;          /* only re-read in measure(), see readTarget */
 
   function measure(){
     if (!mark || !navMark || !markSlot || !pin) return;
+    vpH = innerHeight;
 
     /* Park the fixed mark over its reserved slot in the hero. Measure the slot
        as an OFFSET INSIDE THE PIN, not as a live viewport rect: if the page is
@@ -1249,6 +1294,11 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
       bm.style.width = m.width + 'px';
       bm.style.left  = parkedLeft + 'px';
       bm.style.top   = parkedTop + 'px';
+      /* Only now is the boot mark standing in the right place, so only now is
+         it allowed to appear. Gating on this instead of a timer is what stops
+         the cold-cache jump. */
+      var bootEl = document.getElementById('boot');
+      if (bootEl) bootEl.classList.add('is-ready');
     }
 
     var wasLanded = navMark.classList.contains('landed');
@@ -1278,7 +1328,12 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
 
   function readTarget(){
     if (!intro) return 0;
-    var total = intro.offsetHeight - innerHeight;
+    /* vpH, not innerHeight. Safari's URL bar collapsing mid-scroll changes
+       innerHeight by ~60px, which moved this denominator under us and made the
+       progress value — and so the mark and the bar — jump. The intro's own
+       height is set in vh, which iOS keeps pinned to the large viewport, so the
+       stable captured height is the one that actually matches it. */
+    var total = intro.offsetHeight - vpH;
     var p = total <= 0 ? 1 : clamp01(-intro.getBoundingClientRect().top / total);
     return clamp01(p / DOCK);
   }
@@ -1368,6 +1423,9 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
     navMark.classList.add('landed');
   } else {
     var init = function(){ measure(); snap(); };
+    /* the boot block runs before this one and needs a fresh measure just as
+       the ink lifts — see clearBoot */
+    window.__cvRemeasure = init;
     var baseImg = document.getElementById('introMarkBase');
     if (baseImg.complete) init(); else baseImg.addEventListener('load', init);
     init();
