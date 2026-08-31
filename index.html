@@ -45,7 +45,13 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 }
 
 *,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;scroll-behavior:auto;scrollbar-gutter:stable}
+/* The canvas behind the page. Without a background here it inherits body's
+   bone, so any sideways overscroll flashed near-white against the ink contact
+   section. Both ends of the page are ink, so ink is the honest colour — and
+   overscroll-behavior-x stops the horizontal rubber-band (and Android's
+   back-swipe) from happening at all. */
+html{-webkit-text-size-adjust:100%;scroll-behavior:auto;scrollbar-gutter:stable;
+  background:var(--ink);overscroll-behavior-x:none}
 body{
   margin:0;background:var(--bone);color:var(--ink);
   font-family:Inter,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
