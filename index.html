@@ -1810,8 +1810,12 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
      ever fails we fall back to handing it to the visitor's mail app. ---- */
   var form = document.getElementById('quoteForm');
   var note = document.getElementById('formNote');
-  var TO   = 'sales@cvlandscapingmi.com';
-  var ENDPOINT = 'https://formsubmit.co/ajax/' + TO;
+  /* Pitch setting: inquiries come to Ethan while the site is being shown to
+     Carter. Swap DELIVER_TO back to sales@cvlandscapingmi.com when it goes
+     live — that address then has to confirm its own FormSubmit activation. */
+  var TO         = 'sales@cvlandscapingmi.com';   /* shown on the page */
+  var DELIVER_TO = 'enemycannon161@gmail.com';    /* where the form actually posts */
+  var ENDPOINT = 'https://formsubmit.co/ajax/' + DELIVER_TO;
 
   /* type the digits, the dashes appear: 989-574-6617 */
   var phoneEl = document.getElementById('phone');
