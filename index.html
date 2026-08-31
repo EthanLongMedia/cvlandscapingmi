@@ -81,10 +81,16 @@ p{margin:0}
    by CSS animation, so it always clears even if JS never runs.
    ============================================================ */
 .boot{position:fixed;inset:0;z-index:200;pointer-events:none;
-  animation:bootGone .01s linear 1.85s forwards}
+  animation:bootGone .01s linear 3.4s forwards}   /* failsafe only */
 @keyframes bootGone{to{visibility:hidden}}
-.boot__bg{position:absolute;inset:0;background:var(--ink);
-  animation:bootBg .75s ease-in-out 1.05s forwards}
+.boot__bg{
+  position:absolute;inset:0;background:var(--ink);
+  transition:opacity .7s ease-in-out;
+  /* JS clears this as soon as the hero photo has decoded; the keyframe is the
+     ceiling that fires anyway if JS never runs */
+  animation:bootBg .75s ease-in-out 2.5s forwards;
+}
+.boot.is-clearing .boot__bg{opacity:0}
 @keyframes bootBg{to{opacity:0}}
 .boot__mark{
   position:fixed;left:50%;top:50%;width:clamp(190px,32vw,420px);
@@ -1092,11 +1098,36 @@ form{display:grid;gap:1.4rem}
       if (lenis) lenis.stop();
       scrollTo(0, 0);
       addEventListener('pageshow', function(){ scrollTo(0, 0); });
-      setTimeout(function(){
-        document.documentElement.classList.remove('booting');
-        if (lenis) lenis.start();
-        boot.style.display = 'none';
-      }, 1850);
+
+      /* The ink is a cover for the hero photo loading, not a fixed wait. It
+         lifts the moment the photo has decoded — but never before the CV has
+         finished arriving (FLOOR), and never later than CEIL on a bad signal. */
+      var FLOOR = 950, CEIL = 2500, FADE = 700;
+      var t0 = performance.now(), cleared = false;
+
+      function clearBoot(){
+        if (cleared) return;
+        cleared = true;
+        boot.classList.add('is-clearing');
+        setTimeout(function(){
+          document.documentElement.classList.remove('booting');
+          if (lenis) lenis.start();
+          boot.style.display = 'none';
+        }, FADE);
+      }
+      function whenReady(){
+        setTimeout(clearBoot, Math.max(0, FLOOR - (performance.now() - t0)));
+      }
+
+      var heroImg = document.querySelector('.intro__bg img');
+      if (!heroImg) whenReady();
+      else if (heroImg.complete && heroImg.naturalWidth) whenReady();
+      else if (heroImg.decode) heroImg.decode().then(whenReady, whenReady);
+      else {
+        heroImg.addEventListener('load', whenReady);
+        heroImg.addEventListener('error', whenReady);
+      }
+      setTimeout(clearBoot, CEIL);          /* hard ceiling */
     }
   }
 
