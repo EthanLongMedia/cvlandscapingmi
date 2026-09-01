@@ -320,6 +320,27 @@ html.lenis,html.lenis body{height:auto}
 
 /* The mark is a single image and nothing moves — the intro is fades only. */
 .markimg{position:absolute;inset:0;width:100%;height:100%}
+/* The leaf is a separate layer on the SAME 1328x752 canvas as the base, so the
+   two sit in register with no positioning maths. It pivots at its stem — where
+   it meets the V — not at the element's centre, which is the centre of the
+   whole logo and would swing the leaf clear across the mark.
+   The sway is on the leaf's own transform; the flight animates #introMark, the
+   parent, so the two never write to the same property. */
+.markleaf{transform-origin:74% 60%}
+html:not(.booting) .markleaf{
+  animation:leafSway 4.2s cubic-bezier(.42,0,.58,1) infinite;
+}
+@keyframes leafSway{
+  0%   {transform:rotate(0deg)}
+  22%  {transform:rotate(-2.4deg)}
+  46%  {transform:rotate(1.5deg)}
+  68%  {transform:rotate(-1deg)}
+  86%  {transform:rotate(.5deg)}
+  100% {transform:rotate(0deg)}
+}
+@media(prefers-reduced-motion:reduce){
+  html:not(.booting) .markleaf{animation:none}
+}
 .intro__word{
   margin-top:clamp(1.1rem,3vh,1.9rem);
   color:var(--bone);font-weight:600;
@@ -877,7 +898,8 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
 
 <!-- Lives outside .intro so it can paint above the nav bar during its flight -->
 <div class="flying-mark" id="introMark" role="img" aria-label="CV Landscaping">
-  <img class="markimg" id="introMarkBase" src="assets/mark-white.png" alt="">
+  <img class="markimg" id="introMarkBase" src="assets/mark-base.png" alt="">
+  <img class="markimg markleaf" src="assets/mark-leaf.png" alt="">
 </div>
 
 <!-- ============ 2. MANIFESTO ============ -->
