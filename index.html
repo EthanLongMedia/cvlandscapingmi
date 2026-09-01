@@ -339,21 +339,24 @@ html.lenis,html.lenis body{height:auto}
 
    The sway writes to the leaf's own transform; the flight writes to
    #introMark, the parent, so the two never touch the same property. */
-.markleaf{transform-origin:72.89% 48.27%}
-html:not(.booting) .markleaf{
-  animation:leafSway 5s cubic-bezier(.37,0,.28,1) infinite;
+/* On the loading screen only: the leaf dips once and settles. It runs after
+   the wipe has uncovered it (the leaf is on the right, so it arrives last) and
+   finishes before the ink lifts — FLOOR below is set to cover it. It ends at
+   0deg, which is the artwork's own position, so the hand-off to the hero mark
+   is still pixel-identical. */
+.bootleaf{transform-origin:72.89% 48.27%}
+.boot.is-ready .bootleaf{
+  animation:leafSettle .95s cubic-bezier(.33,0,.2,1) .8s both;
 }
-@keyframes leafSway{
+@keyframes leafSettle{
   0%   {transform:rotate(0deg)}
-  18%  {transform:rotate(9.5deg)}
-  38%  {transform:rotate(-3.5deg)}
-  56%  {transform:rotate(6deg)}
-  74%  {transform:rotate(-2deg)}
-  88%  {transform:rotate(2.5deg)}
-  100% {transform:rotate(0deg)}
+  34%  {transform:rotate(9.5deg)}   /* down */
+  64%  {transform:rotate(-3.5deg)}  /* up */
+  84%  {transform:rotate(1.8deg)}
+  100% {transform:rotate(0deg)}     /* into place */
 }
 @media(prefers-reduced-motion:reduce){
-  html:not(.booting) .markleaf{animation:none}
+  .boot.is-ready .bootleaf{animation:none}
 }
 .intro__word{
   margin-top:clamp(1.1rem,3vh,1.9rem);
@@ -866,7 +869,8 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   <div class="boot__stripes"></div>
   <div class="boot__mark" id="bootMark">
     <div class="boot__in">
-      <img class="markimg" src="assets/mark-white.png" alt="">
+      <img class="markimg" src="assets/mark-base.png" alt="">
+      <img class="markimg bootleaf" src="assets/mark-leaf-root.png" alt="">
     </div>
   </div>
 </div>
@@ -912,8 +916,7 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
 
 <!-- Lives outside .intro so it can paint above the nav bar during its flight -->
 <div class="flying-mark" id="introMark" role="img" aria-label="CV Landscaping">
-  <img class="markimg" id="introMarkBase" src="assets/mark-base.png" alt="">
-  <img class="markimg markleaf" src="assets/mark-leaf-root.png" alt="">
+  <img class="markimg" id="introMarkBase" src="assets/mark-white.png" alt="">
 </div>
 
 <!-- ============ 2. MANIFESTO ============ -->
@@ -1284,9 +1287,9 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
       /* The ink is a cover for the hero photo loading, not a fixed wait. It
          lifts the moment the photo has decoded — but never before the CV has
          finished arriving (FLOOR), and never later than CEIL on a bad signal. */
-      /* FLOOR clears the wipe (.1s delay + .9s) so the mark is never cut off
-         mid-reveal; CEIL is the bad-signal ceiling. */
-      var FLOOR = 1100, CEIL = 2500, FADE = 700;
+      /* FLOOR covers the wipe (.1 + .9s) AND the leaf settling (.8 + .95s), so
+         the ink never lifts mid-shake; CEIL is the bad-signal ceiling. */
+      var FLOOR = 1800, CEIL = 2900, FADE = 700;
       var t0 = performance.now(), cleared = false;
 
       function clearBoot(){
