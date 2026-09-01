@@ -39,6 +39,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
    Palette: ink / bone / moss / copper. Type: Fraunces + Inter.
    ============================================================ */
 :root{
+  --markw:clamp(190px,32vw,420px);   /* the mark's width; the wordmark keys off it */
   --ink:#101A13;
   --ink-80:rgba(16,26,19,.80);
   --ink-55:rgba(16,26,19,.55);
@@ -116,7 +117,7 @@ p{margin:0}
 .boot.is-clearing .boot__bg{opacity:0}
 @keyframes bootBg{to{opacity:0}}
 .boot__mark{
-  position:fixed;left:50%;top:50%;width:clamp(190px,32vw,420px);
+  position:fixed;left:50%;top:50%;width:var(--markw);
   aspect-ratio:1328/752;transform:translate(-50%,-50%);
   /* must match .flying-mark exactly or the shadow pops in at the handoff */
   /* no drop-shadow: the veil already gives the mark 6:1 contrast, and a
@@ -158,6 +159,9 @@ p{margin:0}
    fade it out; a forwards fill would pin the opacity and it would pop. */
 .boot__word{
   position:absolute;left:50%;top:132.28%;width:147.05%;
+  /* the global img{max-width:100%} would clamp this back to the mark's own
+     width and quietly undo the 147.05% */
+  max-width:none;
   transform:translateX(-50%);
 }
 .boot.is-ready .boot__word{
@@ -167,14 +171,10 @@ p{margin:0}
   from{opacity:0;transform:translateX(-50%) translateY(9px)}
   to  {opacity:1;transform:translateX(-50%) translateY(0)}
 }
-/* The wordmark leaves BEFORE the ink starts to lift, not alongside it. The hero
-   carries its own wordmark in the site's type rather than the logo's, so any
-   overlap shows two different "CV LANDSCAPING" stacked at different sizes.
-   clearBoot adds is-wordout first, waits, then starts the ink — so this fade
-   happens while the screen is still fully dark. */
-.boot.is-wordout .boot__word,
+/* Hero and boot now show the same artwork at the same size, so this is a
+   straight cross-dissolve with nothing to give it away. */
 .boot.is-clearing .boot__word{
-  opacity:0;transition:opacity .22s ease-out;
+  opacity:0;transition:opacity .45s ease-out;
 }
 .boot.is-ready .boot__in{
   animation:bootWipe .65s cubic-bezier(.22,.9,.24,1) .05s forwards;
@@ -335,12 +335,12 @@ html.lenis,html.lenis body{height:auto}
    the sticky pin makes its own stacking context, so nothing inside it can
    paint above a fixed nav. */
 .intro__markSlot{
-  width:clamp(190px,32vw,420px);
+  width:var(--markw);
   aspect-ratio:1328/752;
 }
 .flying-mark{
   position:fixed;left:0;top:0;z-index:80;   /* nav is 60 */
-  width:clamp(190px,32vw,420px);aspect-ratio:1328/752;
+  width:var(--markw);aspect-ratio:1328/752;
   transform-origin:50% 50%;will-change:transform;
   pointer-events:none;
   /* no drop-shadow: the veil already gives the mark 6:1 contrast, and a
@@ -384,48 +384,49 @@ html.lenis,html.lenis body{height:auto}
 }
 @keyframes leafSettle{
     0% {transform:rotate(0.00deg)}
-    3% {transform:rotate(0.16deg)}
-    6% {transform:rotate(0.73deg)}
-    9% {transform:rotate(1.74deg)}
-   12% {transform:rotate(3.13deg)}
-   16% {transform:rotate(4.80deg)}
-   19% {transform:rotate(6.55deg)}
-   22% {transform:rotate(8.11deg)}
-   25% {transform:rotate(9.19deg)}
-   28% {transform:rotate(9.49deg)}
-   31% {transform:rotate(8.81deg)}
-   34% {transform:rotate(7.16deg)}
-   38% {transform:rotate(4.74deg)}
-   41% {transform:rotate(1.97deg)}
-   44% {transform:rotate(-0.62deg)}
-   47% {transform:rotate(-2.53deg)}
-   50% {transform:rotate(-3.46deg)}
-   53% {transform:rotate(-3.40deg)}
-   56% {transform:rotate(-2.58deg)}
-   59% {transform:rotate(-1.38deg)}
-   62% {transform:rotate(-0.19deg)}
-   66% {transform:rotate(0.71deg)}
-   69% {transform:rotate(1.21deg)}
-   72% {transform:rotate(1.33deg)}
-   75% {transform:rotate(1.18deg)}
-   78% {transform:rotate(0.89deg)}
-   81% {transform:rotate(0.58deg)}
-   84% {transform:rotate(0.30deg)}
-   88% {transform:rotate(0.08deg)}
-   91% {transform:rotate(-0.07deg)}
-   94% {transform:rotate(-0.16deg)}
-   97% {transform:rotate(-0.20deg)}
+    3% {transform:rotate(0.00deg)}
+    6% {transform:rotate(0.07deg)}
+    9% {transform:rotate(0.36deg)}
+   12% {transform:rotate(1.08deg)}
+   16% {transform:rotate(2.28deg)}
+   19% {transform:rotate(3.88deg)}
+   22% {transform:rotate(5.63deg)}
+   25% {transform:rotate(7.25deg)}
+   28% {transform:rotate(8.52deg)}
+   31% {transform:rotate(9.28deg)}
+   34% {transform:rotate(9.50deg)}
+   38% {transform:rotate(9.24deg)}
+   41% {transform:rotate(8.61deg)}
+   44% {transform:rotate(7.74deg)}
+   47% {transform:rotate(6.76deg)}
+   50% {transform:rotate(5.75deg)}
+   53% {transform:rotate(4.80deg)}
+   56% {transform:rotate(3.94deg)}
+   59% {transform:rotate(3.19deg)}
+   62% {transform:rotate(2.56deg)}
+   66% {transform:rotate(2.05deg)}
+   69% {transform:rotate(1.63deg)}
+   72% {transform:rotate(1.30deg)}
+   75% {transform:rotate(1.04deg)}
+   78% {transform:rotate(0.84deg)}
+   81% {transform:rotate(0.69deg)}
+   84% {transform:rotate(0.57deg)}
+   88% {transform:rotate(0.48deg)}
+   91% {transform:rotate(0.31deg)}
+   94% {transform:rotate(0.18deg)}
+   97% {transform:rotate(0.08deg)}
   100% {transform:rotate(0.00deg)}
 }
 @media(prefers-reduced-motion:reduce){
   .boot.is-ready .bootleaf{animation:none}
 }
 .intro__word{
-  margin-top:clamp(1.1rem,3vh,1.9rem);
-  color:var(--bone);font-weight:600;
-  font-size:clamp(.82rem,1.7vw,1.15rem);
-  letter-spacing:.34em;text-transform:uppercase;
-  text-indent:.34em;
+  /* the real logo letters, at the logo's own lockup proportions: 1.4705x the
+     mark's width, sitting a gap of .1828x below it */
+  display:block;
+  width:calc(var(--markw) * 1.4705);
+  margin-top:calc(var(--markw) * .1828);
+  height:auto;
   will-change:opacity,transform;
 }
 
@@ -968,7 +969,7 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
         Get an estimate <span class="arw" aria-hidden="true">&rarr;</span>
       </a>
       <div class="intro__markSlot" aria-hidden="true"></div>
-      <div class="intro__word" id="introWord">CV Landscaping</div>
+      <img class="intro__word" id="introWord" src="assets/wordmark-white.png" alt="CV Landscaping">
     </div>
 
     <a class="scroll-hint" href="#manifesto" id="scrollHint" aria-label="Scroll down">
@@ -1352,7 +1353,7 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
          finished arriving (FLOOR), and never later than CEIL on a bad signal. */
       /* FLOOR covers the wipe (.05 + .65s) AND the leaf settling (.3 + 2.1s),
          so the ink never lifts mid-shake; CEIL is the bad-signal ceiling. */
-      var FLOOR = 2450, CEIL = 3600, FADE = 700, WORDOUT = 240;
+      var FLOOR = 2450, CEIL = 3600, FADE = 700;
       var t0 = performance.now(), cleared = false;
 
       function clearBoot(){
@@ -1361,17 +1362,12 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
         /* Last re-measure before the ink lifts. By now the webfonts have
            settled, so this is the parked box the hero will actually use. */
         if (window.__cvRemeasure) window.__cvRemeasure();
-        /* wordmark out first, against a still-opaque ink, so it is gone before
-           the hero's own wordmark can show through underneath it */
-        boot.classList.add('is-wordout');
+        boot.classList.add('is-clearing');
         setTimeout(function(){
-          boot.classList.add('is-clearing');
-          setTimeout(function(){
-            document.documentElement.classList.remove('booting');
-            if (lenis) lenis.start();
-            boot.style.display = 'none';
-          }, FADE);
-        }, WORDOUT);
+          document.documentElement.classList.remove('booting');
+          if (lenis) lenis.start();
+          boot.style.display = 'none';
+        }, FADE);
       }
       function whenReady(){
         setTimeout(clearBoot, Math.max(0, FLOOR - (performance.now() - t0)));
