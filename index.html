@@ -147,6 +147,35 @@ p{margin:0}
 .boot__in{
   position:absolute;inset:0;opacity:0;transform-origin:50% 50%;
 }
+/* The wordmark, lifted out of the supplied logo file so the letterforms are
+   the real ones. Its proportions come from that file too: the letters are
+   1.4705x the mark's width and sit a gap of 0.1828x below it. Those are
+   expressed against .boot__mark, whose height is width x 752/1328, so the gap
+   becomes 32.28% of height and the width 147.05% of width.
+   It sits OUTSIDE .boot__in on purpose — that element carries the wipe mask,
+   and anything overflowing its box would be masked away.
+   Fill is `backwards`, not `forwards`, so the clearing rule below can still
+   fade it out; a forwards fill would pin the opacity and it would pop. */
+.boot__word{
+  position:absolute;left:50%;top:132.28%;width:147.05%;
+  transform:translateX(-50%);
+}
+.boot.is-ready .boot__word{
+  animation:bootWordIn .8s cubic-bezier(.2,.8,.3,1) .55s backwards;
+}
+@keyframes bootWordIn{
+  from{opacity:0;transform:translateX(-50%) translateY(9px)}
+  to  {opacity:1;transform:translateX(-50%) translateY(0)}
+}
+/* The wordmark leaves BEFORE the ink starts to lift, not alongside it. The hero
+   carries its own wordmark in the site's type rather than the logo's, so any
+   overlap shows two different "CV LANDSCAPING" stacked at different sizes.
+   clearBoot adds is-wordout first, waits, then starts the ink — so this fade
+   happens while the screen is still fully dark. */
+.boot.is-wordout .boot__word,
+.boot.is-clearing .boot__word{
+  opacity:0;transition:opacity .22s ease-out;
+}
 .boot.is-ready .boot__in{
   animation:bootWipe .65s cubic-bezier(.22,.9,.24,1) .05s forwards;
   /* the deck passes left to right and the mark is left behind it */
@@ -905,6 +934,7 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
       <img class="markimg" src="assets/mark-base.png" alt="">
       <img class="markimg bootleaf" src="assets/mark-leaf-root.png" alt="">
     </div>
+    <img class="boot__word" src="assets/wordmark-white.png" alt="">
   </div>
 </div>
 
@@ -1322,7 +1352,7 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
          finished arriving (FLOOR), and never later than CEIL on a bad signal. */
       /* FLOOR covers the wipe (.05 + .65s) AND the leaf settling (.3 + 2.1s),
          so the ink never lifts mid-shake; CEIL is the bad-signal ceiling. */
-      var FLOOR = 2450, CEIL = 3600, FADE = 700;
+      var FLOOR = 2450, CEIL = 3600, FADE = 700, WORDOUT = 240;
       var t0 = performance.now(), cleared = false;
 
       function clearBoot(){
@@ -1331,12 +1361,17 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
         /* Last re-measure before the ink lifts. By now the webfonts have
            settled, so this is the parked box the hero will actually use. */
         if (window.__cvRemeasure) window.__cvRemeasure();
-        boot.classList.add('is-clearing');
+        /* wordmark out first, against a still-opaque ink, so it is gone before
+           the hero's own wordmark can show through underneath it */
+        boot.classList.add('is-wordout');
         setTimeout(function(){
-          document.documentElement.classList.remove('booting');
-          if (lenis) lenis.start();
-          boot.style.display = 'none';
-        }, FADE);
+          boot.classList.add('is-clearing');
+          setTimeout(function(){
+            document.documentElement.classList.remove('booting');
+            if (lenis) lenis.start();
+            boot.style.display = 'none';
+          }, FADE);
+        }, WORDOUT);
       }
       function whenReady(){
         setTimeout(clearBoot, Math.max(0, FLOOR - (performance.now() - t0)));
