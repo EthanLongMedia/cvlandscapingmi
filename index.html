@@ -105,14 +105,15 @@ p{margin:0}
    by CSS animation, so it always clears even if JS never runs.
    ============================================================ */
 .boot{position:fixed;inset:0;z-index:200;pointer-events:none;
-  animation:bootGone .01s linear 3.4s forwards}   /* failsafe only */
+  animation:bootGone .01s linear 5s forwards}     /* failsafe only — must sit past CEIL+FADE */
 @keyframes bootGone{to{visibility:hidden}}
 .boot__bg{
   position:absolute;inset:0;background:var(--ink);
   transition:opacity .7s ease-in-out;
   /* JS clears this as soon as the hero photo has decoded; the keyframe is the
-     ceiling that fires anyway if JS never runs */
-  animation:bootBg .75s ease-in-out 2.5s forwards;
+     ceiling that fires anyway if JS never runs. It has to sit past CEIL+FADE —
+     at 2.5s it was landing on top of the JS fade and snapping the ink off. */
+  animation:bootBg .75s ease-in-out 4.4s forwards;
 }
 .boot.is-clearing .boot__bg{opacity:0}
 @keyframes bootBg{to{opacity:0}}
@@ -200,6 +201,7 @@ p{margin:0}
 /* Only one mark on screen at a time: the real one stays hidden until the boot
    copy is removed. They occupy the same box, so the swap is invisible. */
 html.booting .flying-mark{opacity:0 !important}
+html.booting .intro__bg img{opacity:0}
 
 /* --- Lenis (smooth scroll) --- */
 html.lenis,html.lenis body{height:auto}
@@ -299,6 +301,8 @@ html.lenis,html.lenis body{height:auto}
 .intro__bg{position:absolute;inset:0;will-change:transform}
 .intro__bg img{
   width:100%;height:100%;object-fit:cover;
+  /* eases up as the ink comes down, so the photo arrives instead of appearing */
+  transition:opacity 1.05s ease-out;
   /* keep the house and the tree circle in frame on wide crops */
   object-position:52% 46%;
 }
@@ -1362,9 +1366,13 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
         /* Last re-measure before the ink lifts. By now the webfonts have
            settled, so this is the parked box the hero will actually use. */
         if (window.__cvRemeasure) window.__cvRemeasure();
+        /* Drop `booting` here, not at the end: it is what holds the hero's
+           photo at opacity 0 and its mark hidden. Releasing it now lets the
+           photo fade up while the ink fades down, and lets the hero mark take
+           over from the identical boot copy with no gap between them. */
+        document.documentElement.classList.remove('booting');
         boot.classList.add('is-clearing');
         setTimeout(function(){
-          document.documentElement.classList.remove('booting');
           if (lenis) lenis.start();
           boot.style.display = 'none';
         }, FADE);
