@@ -345,15 +345,38 @@ html.lenis,html.lenis body{height:auto}
    0deg, which is the artwork's own position, so the hand-off to the hero mark
    is still pixel-identical. */
 .bootleaf{transform-origin:72.89% 48.27%}
+/* A damped spring, sampled into keyframes: it falls, overshoots, comes back
+   smaller, and settles. Four hand-placed stops read as a machine ticking
+   through positions; this is the actual curve a hinged thing follows.
+   Timing is linear on purpose — the easing lives in the keyframe values, so
+   letting the browser ease BETWEEN them would smear the curve. */
 .boot.is-ready .bootleaf{
-  animation:leafSettle .95s cubic-bezier(.33,0,.2,1) .8s both;
+  animation:leafSettle 1.2s linear .55s both;
 }
 @keyframes leafSettle{
-  0%   {transform:rotate(0deg)}
-  34%  {transform:rotate(9.5deg)}   /* down */
-  64%  {transform:rotate(-3.5deg)}  /* up */
-  84%  {transform:rotate(1.8deg)}
-  100% {transform:rotate(0deg)}     /* into place */
+    0% {transform:rotate(0deg)}
+    5% {transform:rotate(5.52deg)}
+    9% {transform:rotate(8.69deg)}
+   14% {transform:rotate(9.48deg)}
+   18% {transform:rotate(8.33deg)}
+   23% {transform:rotate(5.93deg)}
+   27% {transform:rotate(3.01deg)}
+   32% {transform:rotate(0.24deg)}
+   36% {transform:rotate(-1.90deg)}
+   41% {transform:rotate(-3.17deg)}
+   45% {transform:rotate(-3.55deg)}
+   50% {transform:rotate(-3.18deg)}
+   55% {transform:rotate(-2.32deg)}
+   59% {transform:rotate(-1.23deg)}
+   64% {transform:rotate(-0.18deg)}
+   68% {transform:rotate(0.65deg)}
+   73% {transform:rotate(1.16deg)}
+   77% {transform:rotate(1.33deg)}
+   82% {transform:rotate(1.21deg)}
+   86% {transform:rotate(0.90deg)}
+   91% {transform:rotate(0.50deg)}
+   95% {transform:rotate(0.10deg)}
+  100% {transform:rotate(0deg)}
 }
 @media(prefers-reduced-motion:reduce){
   .boot.is-ready .bootleaf{animation:none}
@@ -1287,9 +1310,9 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
       /* The ink is a cover for the hero photo loading, not a fixed wait. It
          lifts the moment the photo has decoded — but never before the CV has
          finished arriving (FLOOR), and never later than CEIL on a bad signal. */
-      /* FLOOR covers the wipe (.1 + .9s) AND the leaf settling (.8 + .95s), so
+      /* FLOOR covers the wipe (.1 + .9s) AND the leaf settling (.55 + 1.2s), so
          the ink never lifts mid-shake; CEIL is the bad-signal ceiling. */
-      var FLOOR = 1800, CEIL = 2900, FADE = 700;
+      var FLOOR = 1900, CEIL = 3000, FADE = 700;
       var t0 = performance.now(), cleared = false;
 
       function clearBoot(){
