@@ -1588,7 +1588,16 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   addEventListener('resize', function(){
     var widthChanged = innerWidth !== lastW;
     lastW = innerWidth;
-    if (!widthChanged && matchMedia('(pointer:coarse)').matches) return;
+    if (!widthChanged && matchMedia('(pointer:coarse)').matches) {
+      /* Height-only on a touch device IS that toolbar transition. The slot and
+         the wordmark re-centre in the shorter pin, but the mark is fixed and
+         keeps the top measured under the old height — so it slides down into
+         the wordmark, and every scroll up and down toggles the bar again.
+         Re-park it, but do NOT snap: snap is what cancels the eased frame and
+         jumps mid-drag. paint() picks the new park up on the next frame. */
+      measure();
+      return;
+    }
     measure(); snap();
   });
   /* coming back to a backgrounded tab: land wherever the scroll actually is */
