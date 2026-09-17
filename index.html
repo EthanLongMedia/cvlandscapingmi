@@ -40,14 +40,16 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0..100,0..1&family=Inter:wght@300..600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0..100,0..1&family=Inter:wght@300..800&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
    CV LANDSCAPING — one page
    Palette: ink / bone / moss / copper. Type: Fraunces + Inter.
    ============================================================ */
 :root{
-  --markw:clamp(190px,32vw,420px);   /* the mark's width; the wordmark keys off it */
+  /* the mark's width. Capped by height too, so the banner's tag, headline and
+     button still fit under it on a short desktop window. */
+  --markw:clamp(190px,min(32vw,40vh),420px);
   --ink:#101A13;
   --ink-80:rgba(16,26,19,.80);
   --ink-55:rgba(16,26,19,.55);
@@ -58,6 +60,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   --moss:#2F4A35;
   --copper:#A9702F;
   --green:#2E6B38;      /* the manifesto's closing line */
+  --pink:#FEA7FF;       /* the ribbon's pink, from the October artwork */
   --rule:rgba(16,26,19,.14);
 
   --gut: clamp(1.25rem, 5vw, 5rem);
@@ -70,6 +73,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   --ease: cubic-bezier(.22,.61,.36,1);
 }
 
+@media(max-width:640px){:root{--markw:min(58vw,250px)}}   /* phones: let it own the width */
 *,*::before,*::after{box-sizing:border-box}
 /* The canvas behind the page. Without a background here it inherits body's
    bone, so any sideways overscroll flashed near-white against the ink contact
@@ -107,27 +111,32 @@ p{margin:0}
 .eyebrow.on-dark{color:rgba(243,240,231,.62)}
 
 /* ============================================================
-   BOOT — the mark arrives on an ink screen, then the ink clears
-   to reveal the hero behind it. The boot mark is placed exactly
-   over the real one, so the handoff is invisible. Driven purely
+   BOOT — the mark arrives on the banner's white, the ribbon lays
+   itself down, then the cover lifts to reveal the hero copy. The
+   boot mark is placed exactly over the real one, and the two
+   backgrounds are identical, so nothing on screen moves or changes
+   colour at the handoff. Driven purely
    by CSS animation, so it always clears even if JS never runs.
    ============================================================ */
 .boot{position:fixed;inset:0;z-index:200;pointer-events:none;
-  animation:bootGone .01s linear 5s forwards}     /* failsafe only — must sit past CEIL+FADE */
+  animation:bootGone .01s linear 5.2s forwards}     /* failsafe only — must sit past CEIL+FADE */
 @keyframes bootGone{to{visibility:hidden}}
 .boot__bg{
-  position:absolute;inset:0;background:var(--ink);
+  /* the same white as the hero behind it, so the lift is invisible: the mark
+     and ribbon simply stay put and the copy fades in around them */
+  position:absolute;inset:0;
+  background:radial-gradient(120% 95% at 50% 42%, #fff 0%, #FBFAF7 55%, #EFEDE6 100%);
   transition:opacity .7s ease-in-out;
   /* JS clears this as soon as the hero photo has decoded; the keyframe is the
      ceiling that fires anyway if JS never runs. It has to sit past CEIL+FADE —
      at 2.5s it was landing on top of the JS fade and snapping the ink off. */
-  animation:bootBg .75s ease-in-out 4.4s forwards;
+  animation:bootBg .75s ease-in-out 4.5s forwards;
 }
 .boot.is-clearing .boot__bg{opacity:0}
 @keyframes bootBg{to{opacity:0}}
 .boot__mark{
   position:fixed;left:50%;top:50%;width:var(--markw);
-  aspect-ratio:1328/752;transform:translate(-50%,-50%);
+  aspect-ratio:838/643;transform:translate(-50%,-50%);
   /* must match .flying-mark exactly or the shadow pops in at the handoff */
   /* no drop-shadow: the veil already gives the mark 6:1 contrast, and a
      44px blur just haloed it against the photo */
@@ -139,11 +148,11 @@ p{margin:0}
 .boot__stripes{
   position:absolute;inset:-20% -55%;pointer-events:none;opacity:0;
   background:linear-gradient(100deg,
-    rgba(243,240,231,0)    0 40%,
-    rgba(243,240,231,.05) 47%,
-    rgba(243,240,231,.10) 50%,
-    rgba(243,240,231,.05) 53%,
-    rgba(243,240,231,0)   60% 100%);
+    rgba(16,26,19,0)    0 40%,
+    rgba(16,26,19,.03) 47%,
+    rgba(16,26,19,.06) 50%,
+    rgba(16,26,19,.03) 53%,
+    rgba(16,26,19,0)   60% 100%);
 }
 .boot.is-ready .boot__stripes{
   animation:bootStripes 1s cubic-bezier(.3,.75,.2,1) forwards;
@@ -156,34 +165,6 @@ p{margin:0}
 }
 .boot__in{
   position:absolute;inset:0;opacity:0;transform-origin:50% 50%;
-}
-/* The wordmark, lifted out of the supplied logo file so the letterforms are
-   the real ones. Its proportions come from that file too: the letters are
-   1.4705x the mark's width and sit a gap of 0.1828x below it. Those are
-   expressed against .boot__mark, whose height is width x 752/1328, so the gap
-   becomes 32.28% of height and the width 147.05% of width.
-   It sits OUTSIDE .boot__in on purpose — that element carries the wipe mask,
-   and anything overflowing its box would be masked away.
-   Fill is `backwards`, not `forwards`, so the clearing rule below can still
-   fade it out; a forwards fill would pin the opacity and it would pop. */
-.boot__word{
-  position:absolute;left:50%;top:132.28%;width:147.05%;
-  /* the global img{max-width:100%} would clamp this back to the mark's own
-     width and quietly undo the 147.05% */
-  max-width:none;
-  transform:translateX(-50%);
-}
-.boot.is-ready .boot__word{
-  animation:bootWordIn .8s cubic-bezier(.2,.8,.3,1) .55s backwards;
-}
-@keyframes bootWordIn{
-  from{opacity:0;transform:translateX(-50%) translateY(9px)}
-  to  {opacity:1;transform:translateX(-50%) translateY(0)}
-}
-/* Hero and boot now show the same artwork at the same size, so this is a
-   straight cross-dissolve with nothing to give it away. */
-.boot.is-clearing .boot__word{
-  opacity:0;transition:opacity .45s ease-out;
 }
 .boot.is-ready .boot__in{
   animation:bootWipe .65s cubic-bezier(.22,.9,.24,1) .05s forwards;
@@ -209,7 +190,6 @@ p{margin:0}
 /* Only one mark on screen at a time: the real one stays hidden until the boot
    copy is removed. They occupy the same box, so the swap is invisible. */
 html.booting .flying-mark{opacity:0 !important}
-html.booting .intro__bg img{opacity:0}
 
 /* --- Lenis (smooth scroll) --- */
 html.lenis,html.lenis body{height:auto}
@@ -240,7 +220,7 @@ html.lenis,html.lenis body{height:auto}
 /* No transition here: the flying mark hides on the same frame this one shows.
    Fading it in left a gap where neither was solid, which read as a pulse. */
 .nav__mark{
-  height:30px;aspect-ratio:1328/752;justify-self:center;
+  height:30px;aspect-ratio:838/643;justify-self:center;
   opacity:0;position:relative;display:block;
   pointer-events:none;                    /* not clickable until it has landed */
   /* transform only — an opacity transition here cross-fades against the flying
@@ -296,37 +276,30 @@ html.lenis,html.lenis body{height:auto}
 }
 
 /* ============================================================
-   1 — THE OPENING (one image; the CV mark flies into the nav)
+   1 — THE OPENING (the banner; the CV mark flies into the nav)
    ------------------------------------------------------------
-   .intro is 155vh tall with a sticky pin. The mark is fully docked
-   ~40vh in, then the hero holds briefly before releasing.
+   .intro is 180vh tall with a sticky pin, and the merch section
+   below starts 80vh early (its negative margin), so the moment the
+   mark begins to rise the merch is already sliding up over the
+   banner like a sheet. The mark docks ~58vh in, the sheet has
+   covered the banner by 80vh, and then the page scrolls on.
    ============================================================ */
-.intro{position:relative;height:155vh;background:var(--ink)}
+.intro{position:relative;height:180vh;background:#fff}
 .intro__pin{
   position:sticky;top:0;height:100svh;min-height:560px;
   overflow:hidden;display:grid;place-items:center;
 }
-.intro__bg{position:absolute;inset:0;will-change:transform}
-.intro__bg img{
-  width:100%;height:100%;object-fit:cover;
-  /* eases up as the ink comes down, so the photo arrives instead of appearing */
-  transition:opacity 1.05s ease-out;
-  /* keep the house and the tree circle in frame on wide crops */
-  object-position:52% 46%;
+.intro__bg{
+  position:absolute;inset:0;will-change:transform;
+  /* the banner's white, warming to the site's bone at the edges */
+  background:radial-gradient(120% 95% at 50% 42%, #fff 0%, #FBFAF7 55%, #EFEDE6 100%);
 }
 
-/* Fine grain over the hero. The source photo is only 750px wide, so a little
-   texture reads as film rather than as a soft upscale. */
+/* Fine grain, as on the photo it replaces — a whisper of paper on the white. */
 .intro__grain{
-  position:absolute;inset:-50%;pointer-events:none;opacity:.09;
+  position:absolute;inset:-50%;pointer-events:none;opacity:.05;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
-  mix-blend-mode:overlay;
-}
-.intro__veil{
-  position:absolute;inset:0;
-  background:
-    radial-gradient(115% 85% at 50% 42%, rgba(16,26,19,.10) 0%, rgba(16,26,19,.58) 100%),
-    linear-gradient(to bottom, rgba(16,26,19,.52) 0%, rgba(16,26,19,0) 30%, rgba(16,26,19,0) 60%, rgba(16,26,19,.70) 100%);
+  mix-blend-mode:multiply;
 }
 
 .intro__inner{
@@ -335,12 +308,32 @@ html.lenis,html.lenis body{height:auto}
   display:flex;flex-direction:column;align-items:center;
 }
 .intro__cta{
-  margin-bottom:clamp(1.6rem,4.5vh,3rem);
+  margin-top:clamp(1.4rem,3.5vh,2.2rem);
   font-size:clamp(.82rem,1.05vw,.95rem);letter-spacing:.14em;
   text-transform:uppercase;font-weight:700;
   padding:1.05rem 2.3rem;
-  box-shadow:0 6px 26px rgba(0,0,0,.3);
+  background:var(--ink);color:var(--bone);      /* ink on the white banner */
+  box-shadow:0 8px 26px rgba(16,26,19,.18);
   will-change:opacity,transform;
+}
+/* the fundraiser tag, in the ribbon's pink */
+.intro__tag{
+  display:inline-flex;align-items:center;gap:.55rem;
+  margin-bottom:clamp(1.4rem,3.5vh,2.4rem);
+  padding:.55rem 1.05rem;border-radius:999px;
+  background:var(--pink);color:var(--ink);
+  font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;font-weight:600;
+  will-change:opacity,transform;
+}
+/* the banner's headline where the wordmark used to sit */
+.intro__copy{margin-top:clamp(1.2rem,3vh,2rem);will-change:opacity,transform}
+.intro__title{
+  font-size:clamp(2.2rem,7.4vw,5.6rem);font-weight:800;line-height:.94;
+  letter-spacing:-.025em;text-transform:uppercase;color:var(--ink);
+}
+.intro__blurb{
+  margin:clamp(.8rem,2vh,1.2rem) auto 0;max-width:34ch;
+  font-size:clamp(.95rem,1.1vw,1.08rem);color:var(--ink-55);line-height:1.5;
 }
 /* Reserves the mark's space in the hero column. The mark itself is a fixed
    overlay (below) so it can travel OVER the nav bar rather than under it —
@@ -348,11 +341,13 @@ html.lenis,html.lenis body{height:auto}
    paint above a fixed nav. */
 .intro__markSlot{
   width:var(--markw);
-  aspect-ratio:1328/752;
+  aspect-ratio:838/643;
+  position:relative;
 }
+.intro__markSlot > *{display:none}   /* the flying mark draws here; see reduced-motion */
 .flying-mark{
   position:fixed;left:0;top:0;z-index:80;   /* nav is 60 */
-  width:var(--markw);aspect-ratio:1328/752;
+  width:var(--markw);aspect-ratio:838/643;
   transform-origin:50% 50%;will-change:transform;
   pointer-events:none;
   /* no drop-shadow: the veil already gives the mark 6:1 contrast, and a
@@ -361,92 +356,55 @@ html.lenis,html.lenis body{height:auto}
 
 /* The mark is a single image and nothing moves — the intro is fades only. */
 .markimg{position:absolute;inset:0;width:100%;height:100%}
-/* The leaf is a separate layer on the SAME 1328x752 canvas as the base, so the
-   two sit in register with no positioning maths.
-
-   Two things stop a seam opening at the joint:
-
-   1. It pivots on the stem tip — the 1px point at (968,363) in the artwork,
-      which is 72.89% 48.27% — not the element's centre, which is the centre of
-      the whole logo and would swing the leaf clear across the mark.
-   2. mark-leaf-root carries a root: the logo's own white within 90px of that
-      tip, travelling WITH the leaf. mark-base has the leaf silhouette cut out
-      of it, so without the root any real rotation peels the stem off the V and
-      shows daylight through the joint. At 0deg base + root is pixel-identical
-      to the original mark.
-
-   The swing is biased positive because the root rotates into the V that way;
-   past about -9deg it starts to poke out the other side.
-
-   The sway writes to the leaf's own transform; the flight writes to
-   #introMark, the parent, so the two never touch the same property. */
-/* On the loading screen only: the leaf dips once and settles. It runs after
-   the wipe has uncovered it (the leaf is on the right, so it arrives last) and
-   finishes before the ink lifts — FLOOR below is set to cover it. It ends at
-   0deg, which is the artwork's own position, so the hand-off to the hero mark
-   is still pixel-identical. */
-.bootleaf{transform-origin:72.89% 48.27%}
-/* A damped spring, sampled into keyframes: it falls, overshoots, comes back
-   smaller, and settles. Four hand-placed stops read as a machine ticking
-   through positions; this is the actual curve a hinged thing follows.
-   Timing is linear on purpose — the easing lives in the keyframe values, so
-   letting the browser ease BETWEEN them would smear the curve. */
-.boot.is-ready .bootleaf{
-  animation:leafSettle 2.1s linear .3s both;
+/* OCTOBER: the mark is the supplied "CV Ribbon logo-final_Icon" artwork,
+   split into two layers on the same 838x643 canvas (the file cropped to its
+   content): mark-oct-green.png is the C, the stroke and EST. 2019 (the
+   white twin is for the ink nav bar); ribbon-oct.png is the ribbon's own pixels, cropped to
+   its box, placed back where they were with the percentages below. The ribbon
+   is its own element on every copy of the mark — boot, hero, nav — placed by
+   the same rule, so the handoffs stay pixel-identical. */
+.ribbon{
+  position:absolute;left:66.706%;top:0;width:33.294%;height:auto;
+  pointer-events:none;transform-origin:50% 50%;
 }
-@keyframes leafSettle{
-    0% {transform:rotate(0.00deg)}
-    3% {transform:rotate(0.00deg)}
-    6% {transform:rotate(0.07deg)}
-    9% {transform:rotate(0.36deg)}
-   12% {transform:rotate(1.08deg)}
-   16% {transform:rotate(2.28deg)}
-   19% {transform:rotate(3.88deg)}
-   22% {transform:rotate(5.63deg)}
-   25% {transform:rotate(7.25deg)}
-   28% {transform:rotate(8.52deg)}
-   31% {transform:rotate(9.28deg)}
-   34% {transform:rotate(9.50deg)}
-   38% {transform:rotate(9.24deg)}
-   41% {transform:rotate(8.61deg)}
-   44% {transform:rotate(7.74deg)}
-   47% {transform:rotate(6.76deg)}
-   50% {transform:rotate(5.75deg)}
-   53% {transform:rotate(4.80deg)}
-   56% {transform:rotate(3.94deg)}
-   59% {transform:rotate(3.19deg)}
-   62% {transform:rotate(2.56deg)}
-   66% {transform:rotate(2.05deg)}
-   69% {transform:rotate(1.63deg)}
-   72% {transform:rotate(1.30deg)}
-   75% {transform:rotate(1.04deg)}
-   78% {transform:rotate(0.84deg)}
-   81% {transform:rotate(0.69deg)}
-   84% {transform:rotate(0.57deg)}
-   88% {transform:rotate(0.48deg)}
-   91% {transform:rotate(0.31deg)}
-   94% {transform:rotate(0.18deg)}
-   97% {transform:rotate(0.08deg)}
-  100% {transform:rotate(0.00deg)}
+/* On the loading screen only: the ribbon appears out of nothing and lays
+   itself down along its own length — the right tail first, up through the
+   crossing, around the loop, then the second strand down to the left tail.
+   Each strand is a masked image (see the SVG); pathLength="1" makes the dash
+   maths the same for both. Starts after the wipe has drawn the mark
+   (.05 + .65s) and is done before the cover lifts (FLOOR). */
+.boot__ribbonWrap{position:absolute;inset:0}
+.ribbon{aspect-ratio:279/482}
+.rb-draw{stroke-dasharray:1 1;stroke-dashoffset:1}
+/* the whole ribbon also sways a couple of degrees from its top as it lays
+   down, and comes to rest square — so the final frame matches the hero copy */
+.boot.is-ready .boot__ribbon{
+  transform-origin:50% 8%;
+  animation:rbSway 1.7s cubic-bezier(.35,.1,.3,1) .5s both;
 }
+@keyframes rbSway{
+    0% {transform:rotate(-3.5deg)}
+   45% {transform:rotate(2.2deg)}
+   75% {transform:rotate(-.8deg)}
+  100% {transform:rotate(0deg)}
+}
+.boot.is-ready .rb-a{animation:rbDraw .9s cubic-bezier(.45,.05,.5,.95) .5s forwards}
+.boot.is-ready .rb-b{animation:rbDraw .65s cubic-bezier(.3,0,.35,1) 1.4s forwards}
+@keyframes rbDraw{to{stroke-dashoffset:0}}
+/* The ribbon does NOT dissolve with the rest of the boot. The white cover
+   fades on its own curve, and a half-faded ribbon over a half-faded white
+   cover over the hero's ribbon read as a white flash on the pink. It is
+   pixel-identical to the hero's copy underneath, so it just stays solid until
+   the boot is display:none and the swap can't be seen. */
 @media(prefers-reduced-motion:reduce){
-  .boot.is-ready .bootleaf{animation:none}
+  .rb-draw{stroke-dashoffset:0}
+  .boot.is-ready .boot__ribbon{animation:none}
 }
-.intro__word{
-  /* the real logo letters, at the logo's own lockup proportions: 1.4705x the
-     mark's width, sitting a gap of .1828x below it */
-  display:block;
-  width:calc(var(--markw) * 1.4705);
-  margin-top:calc(var(--markw) * .1828);
-  height:auto;
-  will-change:opacity,transform;
-}
-
 /* scroll invitation */
 .scroll-hint{
   position:absolute;right:var(--gut);bottom:clamp(1.6rem,5vh,3rem);z-index:2;
   display:flex;flex-direction:column;align-items:center;gap:.75rem;
-  text-decoration:none;color:rgba(243,240,231,.75);
+  text-decoration:none;color:rgba(16,26,19,.6);
   will-change:opacity;
 }
 .scroll-hint span{
@@ -454,11 +412,11 @@ html.lenis,html.lenis body{height:auto}
   writing-mode:vertical-rl;
 }
 .scroll-hint i{
-  display:block;width:1px;height:56px;background:rgba(243,240,231,.28);
+  display:block;width:1px;height:56px;background:rgba(16,26,19,.18);
   position:relative;overflow:hidden;
 }
 .scroll-hint i::after{
-  content:"";position:absolute;inset:0;background:var(--bone);
+  content:"";position:absolute;inset:0;background:var(--ink);
   animation:drop 2.4s var(--ease) infinite;
 }
 @keyframes drop{
@@ -466,6 +424,83 @@ html.lenis,html.lenis body{height:auto}
   55%,100%{transform:translateY(100%)}
 }
 @media(max-width:640px){.scroll-hint span{display:none}}
+
+/* ============================================================
+   1b — HOPE GROWS HERE (October fundraiser merch)
+   ------------------------------------------------------------
+   The products sit stacked like a hand of cards; hovering (or a
+   tap on touch) spreads them into a grid. Ported from the REAL
+   Basketball gear deck. Springs drive the spread, in JS below.
+   ============================================================ */
+.merch{
+  position:relative;z-index:5;              /* above the pinned banner; nav is 60, mark 80 */
+  margin-top:-80vh;                         /* rides up over the banner as the mark rises */
+  background:var(--bone);
+  /* short on top so the cards are on screen while the mark is still rising */
+  padding-block:clamp(3.5rem,8vh,5.5rem) clamp(4rem,10vh,7rem);
+  border-bottom:1px solid var(--rule);
+  border-radius:28px 28px 0 0;
+  box-shadow:0 -24px 60px -28px rgba(16,26,19,.28);
+}
+.merch__head{display:grid;justify-items:center;text-align:center}
+.merch h2{font-size:var(--d2);margin-top:1.1rem;max-width:14ch}
+/* the ribbon pink, drawn in as a rule under the last word once the line lands */
+.merch h2 .accent{position:relative;display:inline-block;padding-bottom:.06em}
+.merch h2 .accent::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:.075em;
+  background:var(--pink);border-radius:2px;
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .9s var(--ease) .3s;
+}
+.merch h2.in .accent::after{transform:scaleX(1)}
+.merch__lead{margin-top:1.2rem;max-width:44ch;color:var(--ink-80)}
+.merch__hint{margin-top:1.2rem}
+.merch__hint .touch{display:none}
+@media(hover:none){.merch__hint .fine{display:none}.merch__hint .touch{display:inline}}
+.merch__foot{display:flex;justify-content:center;margin-top:2.75rem}
+.merch__cta{
+  font-size:clamp(.8rem,1vw,.9rem);letter-spacing:.14em;text-transform:uppercase;
+  font-weight:700;padding:1rem 2.1rem;
+  background:var(--ink);color:var(--bone);
+}
+.merch__cta:hover{box-shadow:0 0 0 2px var(--bone),0 10px 26px rgba(46,107,56,.45)}
+
+.deck{
+  position:relative;margin-top:clamp(1.6rem,3.5vw,2.75rem);height:360px;
+  --card-w:clamp(150px,15vw,210px);--card-ar:.75;--card-gap:18px;--label:60px;
+}
+@media(max-width:560px){.deck{--card-w:136px;--card-gap:12px;--label:56px}}
+.card{
+  position:absolute;left:0;top:0;width:var(--card-w);
+  transform-origin:50% 88%;will-change:transform;
+  text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent;
+}
+.card-face{
+  position:relative;display:block;aspect-ratio:var(--card-ar);
+  border-radius:18px;overflow:hidden;background:#fff;
+  box-shadow:0 1px 1px rgba(16,26,19,.05),0 18px 36px -18px rgba(16,26,19,.38);
+  transition:transform .45s var(--ease),box-shadow .45s var(--ease);
+}
+.card-face img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  pointer-events:none;-webkit-user-drag:none;
+}
+/* the back of the garment carries the big print; it shows on hover */
+.card-face img.back{opacity:0;transition:opacity .4s var(--ease)}
+.card-face::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(16,26,19,.07)}
+.card-label{display:grid;gap:3px;padding:12px 4px 0;text-align:center;opacity:0;will-change:opacity}
+.card-label b{
+  font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+  line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+}
+.card-label i{font-style:normal;font-size:.82rem;color:var(--ink-55)}
+@media(hover:hover) and (pointer:fine){
+  .deck.is-open .card:hover .card-face{
+    transform:translateY(-8px) scale(1.035);
+    box-shadow:0 1px 1px rgba(16,26,19,.05),0 30px 50px -22px rgba(16,26,19,.45);
+  }
+  .deck.is-open .card:hover .card-face img.back{opacity:1}
+}
 
 /* ============================================================
    2 — MANIFESTO
@@ -926,11 +961,12 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   *,*::before,*::after{animation-duration:.001s !important;animation-iteration-count:1 !important;transition-duration:.001s !important}
   .intro{height:auto}
   .intro__pin{position:relative}
+  .merch{margin-top:0;border-radius:0;box-shadow:none}
   .nav{opacity:1;pointer-events:auto}
   .nav__mark{opacity:1}
   /* no flight: draw the mark straight into its slot and drop the overlay */
   .flying-mark{display:none}
-  .intro__markSlot{background:url(assets/mark-white.png) center/contain no-repeat}
+  .intro__markSlot > *{display:block}
   .rv{opacity:1;transform:none}
   .scroll-hint i::after{display:none}
 }
@@ -944,10 +980,36 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   <div class="boot__stripes"></div>
   <div class="boot__mark" id="bootMark">
     <div class="boot__in">
-      <img class="markimg" src="assets/mark-base.png" alt="">
-      <img class="markimg bootleaf" src="assets/mark-leaf-root.png" alt="">
+      <img class="markimg" src="assets/mark-oct-green.png" alt="">
     </div>
-    <img class="boot__word" src="assets/wordmark-white.png" alt="">
+    <!-- Outside .boot__in on purpose: the wipe's mask clips to that box and
+         the ribbon's flight goes well outside it. -->
+    <div class="boot__ribbonWrap">
+      <!-- The ribbon is laid down like real ribbon: the artwork is split into
+           its two strands and the fold, and each is uncovered by a mask stroke
+           that draws along the strand's own centreline — right tail up through
+           the crossing, around the loop, and down to the left tail. No filter
+           on the pixels themselves (a displacement flutter was tried and made
+           the edges ripple), so every frame is the artwork, just partly shown. -->
+      <svg class="ribbon boot__ribbon" viewBox="0 0 279 482" aria-hidden="true" focusable="false">
+        <defs>
+          <filter id="rbSoft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="4"/></filter>
+          <mask id="rbMaskA" maskUnits="userSpaceOnUse" x="-120" y="-120" width="520" height="720">
+            <path class="rb-draw rb-a" pathLength="1" fill="none" stroke="#fff" stroke-width="110" stroke-linejoin="round" filter="url(#rbSoft)"
+              d="M340 480 L278 426 L246 390 L210 350 L174 310 L141 270 L125 252 L111 230 L85 190 L66 150 L52 110 L47 70 L50 50 L62 38 L80 30 L100 26 L124 25 L148 26 L168 30 L186 38 L198 50"/>
+          </mask>
+          <mask id="rbMaskB" maskUnits="userSpaceOnUse" x="-120" y="-120" width="520" height="720">
+            <path class="rb-draw rb-b" pathLength="1" fill="none" stroke="#fff" stroke-width="110" stroke-linejoin="round" filter="url(#rbSoft)"
+              d="M192 36 L198 55 L200 70 L198 90 L195 110 L189 130 L181 150 L172 170 L162 190 L152 210 L142 230 L125 255 L100 290 L75 322 L50 354 L30 382 L-10 438"/>
+          </mask>
+        </defs>
+        <g>
+          <image href="assets/ribbon-oct-dark.png"  width="279" height="482" mask="url(#rbMaskA)"/>
+          <image href="assets/ribbon-oct-fold.png"  width="279" height="482" mask="url(#rbMaskA)"/>
+          <image href="assets/ribbon-oct-light.png" width="279" height="482" mask="url(#rbMaskB)"/>
+        </g>
+      </svg>
+    </div>
   </div>
 </div>
 
@@ -959,9 +1021,10 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
     <a href="https://portal.golmn.com/login/V88vZXxBvng6559WZVsSFw/" target="_blank" rel="noopener">Portal</a>
   </nav>
   <a class="nav__mark" id="navHome" href="#top" aria-label="CV Landscaping — back to top">
-    <img class="markimg" src="assets/mark-white.png" alt="">
+    <img class="markimg" src="assets/mark-oct-white.png" alt="">
+    <img class="ribbon" src="assets/ribbon-oct.png" alt="">
   </a>
-  <div class="nav__right"><a class="btn-cta cta" href="#contact">Get an estimate <span class="arw" aria-hidden="true">&rarr;</span></a></div>
+  <div class="nav__right"><a class="btn-cta cta" href="https://cv-landscaping-hope-grows-here-shop.fourthwall.com" target="_blank" rel="noopener">Get your merch <span class="arw" aria-hidden="true">&rarr;</span></a></div>
 </header>
 
 <!-- ============ 1. OPENING ============ -->
@@ -970,18 +1033,24 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
     <!-- Hero photo: real CV client property, drone shot. Source is small
          (750px) and was upscaled to 2600px, so a light grain layer keeps any
          residual softness reading as film. -->
-    <div class="intro__bg" id="introBg">
-      <img src="assets/IMG_7343.jpg" alt="A CV Landscaping client property, striped from the edge of the lawn back toward the house" fetchpriority="high">
-    </div>
-    <div class="intro__veil" aria-hidden="true"></div>
+    <!-- OCTOBER: the fundraiser banner — white, with the Hope Grows Here
+         lockup and copy where the photo used to be. -->
+    <div class="intro__bg" id="introBg"></div>
     <div class="intro__grain" aria-hidden="true"></div>
 
     <div class="intro__inner">
-      <a class="btn-cta intro__cta" id="introCta" href="#contact">
-        Get an estimate <span class="arw" aria-hidden="true">&rarr;</span>
+      <p class="intro__tag" id="introTag">Fundraiser <span aria-hidden="true">&middot;</span> Sep. 20 &ndash; Oct. 31</p>
+      <div class="intro__markSlot" aria-hidden="true">
+        <img class="markimg" src="assets/mark-oct-green.png" alt="">
+        <img class="ribbon" src="assets/ribbon-oct.png" alt="">
+      </div>
+      <div class="intro__copy" id="introWord">
+        <h1 class="intro__title">Hope grows<br>here</h1>
+        <p class="intro__blurb">Hoodies and tees available &mdash; support us and make a difference today.</p>
+      </div>
+      <a class="btn-cta intro__cta" id="introCta" href="https://cv-landscaping-hope-grows-here-shop.fourthwall.com" target="_blank" rel="noopener">
+        Get your merch <span class="arw" aria-hidden="true">&rarr;</span>
       </a>
-      <div class="intro__markSlot" aria-hidden="true"></div>
-      <img class="intro__word" id="introWord" src="assets/wordmark-white.png" alt="CV Landscaping">
     </div>
 
     <a class="scroll-hint" href="#manifesto" id="scrollHint" aria-label="Scroll down">
@@ -992,8 +1061,25 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
 
 <!-- Lives outside .intro so it can paint above the nav bar during its flight -->
 <div class="flying-mark" id="introMark" role="img" aria-label="CV Landscaping">
-  <img class="markimg" id="introMarkBase" src="assets/mark-white.png" alt="">
+  <img class="markimg" id="introMarkBase" src="assets/mark-oct-green.png" alt="">
+  <!-- crossfades in over the flight, so the mark is white by the time it lands on the ink bar -->
+  <img class="markimg" id="introMarkWhite" src="assets/mark-oct-white.png" alt="" style="opacity:0">
+  <img class="ribbon" src="assets/ribbon-oct.png" alt="">
 </div>
+
+<!-- ============ 1b. HOPE GROWS HERE — the October fundraiser ============ -->
+<section class="merch" id="merch" aria-labelledby="merchTitle">
+  <div class="wrap merch__head">
+    <p class="eyebrow rv">The merch &middot; Sep. 20 &ndash; Oct. 31</p>
+    <h2 class="serif rv rv-d1" id="merchTitle">Wear it <span class="accent">for the cause.</span></h2>
+    <p class="rv rv-d2 merch__lead">The Hope Grows Here collection &mdash; hoodies, tees, a sweatshirt and a sticker. Every order supports the fundraiser.</p>
+    <p class="eyebrow rv rv-d3 merch__hint"><span class="fine">Hover to see all 7</span><span class="touch">Tap to see all 7</span></p>
+  </div>
+  <div class="wrap">
+    <div class="deck rv" id="merchDeck" data-deck></div>
+    <div class="merch__foot rv"><a class="btn-cta merch__cta" href="https://cv-landscaping-hope-grows-here-shop.fourthwall.com" target="_blank" rel="noopener">Shop the fundraiser <span class="arw" aria-hidden="true">&rarr;</span></a></div>
+  </div>
+</section>
 
 <!-- ============ 2. MANIFESTO ============ -->
 <section class="manifesto wrap" id="manifesto">
@@ -1327,6 +1413,110 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   </div>
 </section>
 
+<script>
+/* ============ HOPE GROWS HERE — the merch deck ============
+   Stacked like a hand of cards; hover (or a first tap) spreads every product
+   out into a grid. A damped spring per card, all sharing one rAF loop. */
+(function(){
+  var SHOP = 'https://cv-landscaping-hope-grows-here-shop.fourthwall.com';
+  var MERCH = [
+    ['hope-grows-here-hoodie',               'Hope Grows Here Hoodie',               '45'],
+    ['hope-grows-here-tee',                  'Hope Grows Here Tee',                  '35'],
+    ['standard-logo-hope-grows-here-hoodie', 'Standard Logo Hoodie',                 '45'],
+    ['standard-logo-hope-grows-here-tee',    'Standard Logo Tee',                    '35'],
+    ['womens-hope-grows-here-tee',           "Women's Hope Grows Here Tee",          '35'],
+    ['hope-grows-here-sweatshirt',           'Hope Grows Here Sweatshirt',           '45'],
+    ['hope-grows-here-sticker',              'Hope Grows Here Sticker',              '6', true]   /* no back view: its second shot is just the sticker tilted */
+  ];
+  var root = document.getElementById('merchDeck');
+  if (!root) return;
+  root.innerHTML = MERCH.map(function(p){
+    return '<a class="card" href="' + SHOP + '/products/' + p[0] + '" target="_blank" rel="noopener">' +
+      '<span class="card-face">' +
+        '<img src="assets/merch/' + p[0] + '-1-480.jpg?v=2" alt="" width="480" height="640" loading="lazy" decoding="async">' +
+        (p[3] ? '' : '<img class="back" src="assets/merch/' + p[0] + '-2-480.jpg?v=2" alt="" width="480" height="640" loading="lazy" decoding="async">') +
+      '</span>' +
+      '<span class="card-label"><b>' + p[1] + '</b><i>$' + p[2] + '</i></span></a>';
+  }).join('');
+
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var clamp = function(v, a, b){ return Math.min(b, Math.max(a, v)); };
+
+  /* spring engine: (damping ratio, response in s); retargets from the live value */
+  var active = new Set(), raf = 0, last = 0;
+  function loop(t){
+    var dt = Math.min(0.064, (t - last) / 1000 || 0.016); last = t;
+    active.forEach(function(s){ s.step(dt); });
+    raf = active.size ? requestAnimationFrame(loop) : 0;
+  }
+  function wake(){ if (!raf) { last = performance.now(); raf = requestAnimationFrame(loop); } }
+  function Spring(v, o){
+    this.x = v; this.v = 0; this.target = v; this.onUpdate = o.onUpdate; this.eps = o.eps || 0.01;
+    var w = 2 * Math.PI / (o.response || 0.4); this.k = w * w; this.c = 2 * (o.damping == null ? 1 : o.damping) * w;
+  }
+  Spring.prototype.to = function(t){
+    this.target = t;
+    if (reduce) { this.x = t; this.v = 0; active.delete(this); this.onUpdate(t); return; }
+    active.add(this); wake();
+  };
+  Spring.prototype.step = function(dt){
+    var n = Math.ceil(dt / 0.004), h = dt / n;
+    for (var i = 0; i < n; i++) { this.v += (-this.k * (this.x - this.target) - this.c * this.v) * h; this.x += this.v * h; }
+    if (Math.abs(this.v) < this.eps && Math.abs(this.x - this.target) < this.eps) { this.x = this.target; this.v = 0; active.delete(this); }
+    this.onUpdate(this.x);
+  };
+
+  var FAN = [[0, 0, 0], [-1, -7, 1], [1, 7, 1], [-2, -13, 2], [2, 13, 2], [-3, -18, 3], [3, 18, 3]];
+  var cards = [].slice.call(root.querySelectorAll('.card'));
+  var labels = cards.map(function(c){ return c.querySelector('.card-label'); });
+  var n = cards.length, open = false, grid, stack, gridH, stackH;
+
+  function measure(){
+    var cs = getComputedStyle(root), W = root.clientWidth;
+    /* --card-w is a clamp(), which comes back unresolved — read the laid-out card */
+    var S = cards[0].offsetWidth || 200, ar = parseFloat(cs.getPropertyValue('--card-ar')) || 0.75;
+    var gap = parseFloat(cs.getPropertyValue('--card-gap')) || 16, label = parseFloat(cs.getPropertyValue('--label')) || 56, H = S / ar;
+    var cols = clamp(Math.floor((W + gap) / (S + gap)), 1, n), rows = Math.ceil(n / cols);
+    grid = cards.map(function(_, i){
+      var r = Math.floor(i / cols), inRow = r === rows - 1 ? n - cols * (rows - 1) : cols;
+      var x0 = (W - (inRow * S + (inRow - 1) * gap)) / 2;
+      return { x: x0 + (i % cols) * (S + gap), y: r * (H + label + gap), r: 0 };
+    });
+    gridH = rows * (H + label + gap) - gap;
+    var spread = Math.min(64, W / 12);
+    /* no scale in the fan: the cards behind sit lower and rotate, that's enough depth */
+    stack = cards.map(function(_, i){ var f = FAN[i] || [0, 0, 4]; return { x: (W - S) / 2 + f[0] * spread, y: 30 + f[2] * 9, r: f[1], hide: i >= FAN.length }; });
+    stackH = H + 90;
+  }
+  function paint(i, v){
+    var a = stack[i], b = grid[i], c = cards[i];
+    c.style.transform = 'translate3d(' + (a.x + (b.x - a.x) * v) + 'px,' + (a.y + (b.y - a.y) * v) + 'px,0) rotate(' + (a.r + (b.r - a.r) * v) + 'deg)';
+    c.style.opacity = a.hide ? clamp(v * 2.5, 0, 1) : 1;
+    labels[i].style.opacity = clamp((v - 0.55) / 0.45, 0, 1);
+    /* stacking and hit-testing only flip once, at the halfway point */
+    var front = v > 0.5;
+    if (c._front !== front) { c._front = front; c.style.zIndex = front ? 1 : n - i; c.style.pointerEvents = a.hide && !front ? 'none' : ''; }
+  }
+  function paintH(v){ root.style.height = (stackH + (gridH - stackH) * v) + 'px'; }
+  var springs = cards.map(function(_, i){ return new Spring(0, { damping: 0.82, response: 0.62, eps: 0.0008, onUpdate: function(v){ paint(i, v); } }); });
+  var hs = new Spring(0, { damping: 1, response: 0.55, eps: 0.001, onUpdate: paintH });
+  function paintAll(){ springs.forEach(function(s, i){ paint(i, s.x); }); paintH(hs.x); }
+  function set(o){
+    if (o === open) return; open = o; root.classList.toggle('is-open', o);
+    springs.forEach(function(s, i){ var k = o ? i : n - 1 - i; setTimeout(function(){ s.to(o ? 1 : 0); }, reduce ? 0 : k * (o ? 16 : 9)); });
+    hs.to(o ? 1 : 0);
+  }
+  measure(); paintAll();
+  new ResizeObserver(function(){ measure(); paintAll(); }).observe(root);
+  /* decided per event, not once at load: a mouse spreads it on hover, a finger's first tap spreads it */
+  var t = 0;
+  root.addEventListener('pointerenter', function(e){ if (e.pointerType === 'touch') return; clearTimeout(t); set(true); });
+  root.addEventListener('pointerleave', function(e){ if (e.pointerType === 'touch') return; clearTimeout(t); t = setTimeout(function(){ set(false); }, 220); });
+  root.addEventListener('click', function(e){ if (!open) { e.preventDefault(); set(true); } }, true);
+  root.addEventListener('focusin', function(){ set(true); });
+  if (reduce) set(true);
+})();
+</script>
 <script src="assets/vendor/lenis.min.js"></script>
 <script>
 (function(){
@@ -1363,9 +1553,10 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
       /* The ink is a cover for the hero photo loading, not a fixed wait. It
          lifts the moment the photo has decoded — but never before the CV has
          finished arriving (FLOOR), and never later than CEIL on a bad signal. */
-      /* FLOOR covers the wipe (.05 + .65s) AND the leaf settling (.3 + 2.1s),
-         so the ink never lifts mid-shake; CEIL is the bad-signal ceiling. */
-      var FLOOR = 2450, CEIL = 3600, FADE = 700;
+      /* FLOOR covers the wipe (.05 + .65s) AND the ribbon laying itself down
+         (.5 + .9 + .65s, sway settled at 2.2s), so the ink never lifts
+         mid-draw; CEIL is the bad-signal ceiling. */
+      var FLOOR = 2600, CEIL = 3700, FADE = 700;
       var t0 = performance.now(), cleared = false;
 
       function clearBoot(){
@@ -1443,6 +1634,8 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   var intro    = document.getElementById('top');
   var mark     = document.getElementById('introMark');
   var eyebrow  = document.getElementById('introCta');
+  var tag      = document.getElementById('introTag');
+  var markWhite= document.getElementById('introMarkWhite');
   var word     = document.getElementById('introWord');
   var hint     = document.getElementById('scrollHint');
   var bg       = document.getElementById('introBg');
@@ -1531,10 +1724,15 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
                          (flight.dy * e).toFixed(2) + 'px,0) ' +
         'scale(' + lerp(1, flight.scale, e).toFixed(4) + ')';
 
+      /* green on the white banner, white on the ink bar: the white copy fades
+         up with the flight, so it has fully changed colour by the time it lands */
+      if (markWhite) markWhite.style.opacity = e.toFixed(3);
+
       var fade = clamp01(q / 0.45);
       eyebrow.style.opacity = String(1 - fade);
-      eyebrow.style.transform = 'translateY(' + (fade * -18) + 'px)';
+      eyebrow.style.transform = 'translateY(' + (fade * 18) + 'px)';
       eyebrow.style.pointerEvents = fade > 0.5 ? 'none' : 'auto';
+      if (tag) { tag.style.opacity = String(1 - fade); tag.style.transform = 'translateY(' + (fade * -18) + 'px)'; }
       word.style.opacity = String(1 - fade);
       word.style.transform = 'translateY(' + (fade * 14) + 'px)';
       hint.style.opacity = String(1 - clamp01(q / 0.3));
@@ -1548,7 +1746,7 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
     else        { if (q >= 0.999) docked = true; }
 
     /* bar arrives while the hero button is still fading, so there is never a
-       moment with no "Get an estimate" on screen */
+       moment with no "Get your merch" on screen */
     nav.classList.toggle('show', q > 0.28);
     navMark.classList.toggle('landed', docked);
     if (!reduce) mark.style.opacity = docked ? '0' : '1';
