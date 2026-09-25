@@ -902,18 +902,14 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   .formnote{transition:none}
 }
 
-/* footer */
+/* footer: three tiers, all centred. The links, then the logo and the
+   "Site by" credit together on a row of their own, then the fine print. */
 .foot{
   margin-top:clamp(1.5rem,3.5vh,3rem);
   border-top:1px solid rgba(243,240,231,.16);
-  padding:clamp(1.5rem,3vw,2.25rem) 0 1.25rem;
+  padding:clamp(.9rem,2vw,1.4rem) 0 1.25rem;
 }
-.foot__grid{
-  display:flex;flex-wrap:wrap;gap:2rem;
-  justify-content:space-between;align-items:flex-start;
-}
-.foot img{height:54px;width:auto;opacity:.92}
-.foot__links{display:flex;flex-wrap:wrap;gap:.2rem 1.6rem}
+.foot__links{display:flex;flex-wrap:wrap;justify-content:center;gap:0 2.2rem}
 .foot__links a{
   text-decoration:none;font-size:.76rem;letter-spacing:.14em;
   text-transform:uppercase;color:rgba(243,240,231,.6);
@@ -921,28 +917,44 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   padding-block:.6rem;              /* comfortable tap target on a phone */
 }
 .foot__links a:hover{color:var(--copper)}
+.foot__brand{
+  display:flex;align-items:center;justify-content:center;gap:22px;
+  margin-top:clamp(1.1rem,2.6vh,1.9rem);
+}
+.foot img{height:54px;width:auto;opacity:.92}
 .foot__base{
-  margin-top:1.4rem;padding-top:1rem;
+  margin-top:clamp(1.1rem,2.6vh,1.9rem);padding-top:1rem;
   border-top:1px solid rgba(243,240,231,.1);
-  display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;
+  display:flex;flex-wrap:wrap;gap:.35rem 1.6rem;justify-content:center;text-align:center;
   font-size:.74rem;color:rgba(243,240,231,.38);
 }
-
-/* "Site by" credit: Ethan Long Design's wordmark, outlined so it needs no
-   font, one <path> per glyph. Each glyph carries --x (its left edge as a
-   fraction of the mark) so a hover sweeps cream across it left to right.
-   No target="_blank": Facebook's in-app browser has no tabs. */
+/* The credit: Ethan Long Design's wordmark, outlined so it needs no font,
+   one <path> per glyph. Each glyph carries --x (its left edge as a fraction
+   of the mark) so a hover sweeps cream across it left to right. A hairline
+   separates it from the logo. No target="_blank": Facebook's in-app browser
+   has no tabs. */
 .credit{
-  display:inline-flex;align-items:center;gap:10px;
+  display:inline-flex;flex-direction:column;align-items:flex-start;gap:5px;
+  padding-left:22px;border-left:1px solid rgba(243,240,231,.16);
+  font-size:.72rem;letter-spacing:.02em;line-height:1;
   color:rgba(243,240,231,.5);text-decoration:none;
   transition:color .3s,opacity .18s;
 }
 .credit:hover,.credit:focus-visible{color:#F3F0E7}
 .credit:active{opacity:.6;transition-duration:0s}
-.elw{height:30px;width:auto;flex:none;overflow:visible}
+.elw{height:28px;width:auto;flex:none;overflow:visible}
 .elw .g{fill:rgba(243,240,231,.5);transition:fill .28s 0s}
 .credit:hover .elw .g,.credit:focus-visible .elw .g{fill:#F3F0E7;transition-delay:calc(var(--x) * 420ms)}
-.foot__base{align-items:center}
+/* Phones: six links wrapping as they fall leave ragged rows, so they sit
+   in two even columns. The fine print stacks, one line each. */
+@media(max-width:600px){
+  .foot__links{display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;text-align:center}
+  .foot__brand{gap:18px}
+  .foot img{height:48px}
+  .credit{padding-left:18px}
+  .elw{height:26px}
+  .foot__base{flex-direction:column;align-items:center}
+}
 
 /* Short screens: the bar eats ~68px, so the contact content has to give some
    back or it slides under it. Type comes down, nothing is removed. */
@@ -951,7 +963,8 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   .contact__aside p{margin-top:.85rem;font-size:.95rem}
   .contact__direct a{font-size:clamp(1.1rem,1.8vw,1.45rem);padding-bottom:.35rem}
   .foot img{height:42px}
-  .foot__base{margin-top:1rem;padding-top:.8rem}
+  .foot__brand,.foot__base{margin-top:1rem}
+  .foot__base{padding-top:.8rem}
   /* the form column is the tall one — this is where the height actually is */
   form,.f2{gap:.7rem}
   .field label{margin-bottom:.3rem;font-size:.62rem}
@@ -1410,20 +1423,16 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
     </div>
 
     <footer class="foot">
-      <div class="foot__grid">
-        <img src="assets/logo-white.png" alt="CV Landscaping">
-        <div class="foot__links">
-          <a href="#services">Services</a>
-          <a href="#work">Work</a>
-                <a href="#contact">Estimates</a>
-          <a href="https://portal.golmn.com/login/V88vZXxBvng6559WZVsSFw/" target="_blank" rel="noopener">Customer Portal</a>
-          <a href="https://www.instagram.com/c.v.landscaping/" target="_blank" rel="noopener">Instagram</a>
-          <a href="https://www.facebook.com/p/CV-Landscaping-100090900660116/" target="_blank" rel="noopener">Facebook</a>
-        </div>
+      <div class="foot__links">
+        <a href="#services">Services</a>
+        <a href="#work">Work</a>
+        <a href="#contact">Estimates</a>
+        <a href="https://portal.golmn.com/login/V88vZXxBvng6559WZVsSFw/" target="_blank" rel="noopener">Customer Portal</a>
+        <a href="https://www.instagram.com/c.v.landscaping/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://www.facebook.com/p/CV-Landscaping-100090900660116/" target="_blank" rel="noopener">Facebook</a>
       </div>
-      <div class="foot__base">
-        <span>&copy; <span id="yr">2026</span> CV Landscaping &middot; Est. 2019 &middot; Hemlock, MI 48626</span>
-        <span>The Tri-City&rsquo;s premier lawn and landscaping company.</span>
+      <div class="foot__brand">
+        <img src="assets/logo-white.png" alt="CV Landscaping">
         <a class="credit" href="https://ethanlongdesign.com" aria-label="Site by Ethan Long Design">
           <span>Site by</span>
           <svg class="elw" viewBox="0 0 624.76 140.52" aria-hidden="true" focusable="false">
@@ -1444,6 +1453,10 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
             <g transform="translate(177.526 140.000)"><path class="g s" style="--x:0.665" d="M238.15 0.00V-33.47H244.93L256.50 -15.03Q257.22 -13.88 258.03 -12.43Q258.84 -10.98 259.71 -9.20Q260.59 -7.41 261.44 -5.23H260.77Q260.61 -7.12 260.49 -9.11Q260.36 -11.10 260.31 -12.88Q260.25 -14.67 260.25 -15.90V-33.47H266.34V0.00H259.53L249.09 -16.60Q248.10 -18.19 247.22 -19.74Q246.35 -21.29 245.34 -23.25Q244.33 -25.20 242.89 -27.96H243.74Q243.88 -25.52 243.99 -23.33Q244.10 -21.14 244.18 -19.41Q244.26 -17.68 244.26 -16.62V0.00Z"/></g>
           </svg>
         </a>
+      </div>
+      <div class="foot__base">
+        <span>&copy; <span id="yr">2026</span> CV Landscaping &middot; Est. 2019 &middot; Hemlock, MI 48626</span>
+        <span>The Tri-City&rsquo;s premier lawn and landscaping company.</span>
       </div>
     </footer>
   </div>
