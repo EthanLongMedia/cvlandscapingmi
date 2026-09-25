@@ -902,31 +902,47 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   .formnote{transition:none}
 }
 
-/* footer: three tiers, all centred. The links, then the logo and the
-   "Site by" credit together on a row of their own, then the fine print. */
+/* footer: three tiers on an 8px rhythm. The links first, as three labelled
+   groups whose labels share one line and whose links share the next: the first
+   group holds the left edge, the last the right, the middle one the centre.
+   Then the logo and the "Site by" credit on a row of their own, framed by
+   hairlines. Then the fine print. On a phone the groups become a list,
+   label left and links right, one hairline per row. */
 .foot{
   margin-top:clamp(1.5rem,3.5vh,3rem);
   border-top:1px solid rgba(243,240,231,.16);
-  padding:clamp(.9rem,2vw,1.4rem) 0 1.25rem;
+  padding:clamp(1.25rem,2.5vw,1.75rem) 0 1.25rem;
 }
-.foot__links{display:flex;flex-wrap:wrap;justify-content:center;gap:0 2.2rem}
+.foot__nav{display:grid;grid-template-columns:1fr auto 1fr;gap:2rem}
+.foot__col:nth-child(2){text-align:center}
+.foot__col:nth-child(2) .foot__links{justify-content:center}
+.foot__col:last-child{text-align:right}
+.foot__col:last-child .foot__links{justify-content:flex-end}
+.foot__k{
+  display:block;margin-bottom:.5rem;
+  font-size:.68rem;line-height:1rem;letter-spacing:.24em;text-transform:uppercase;
+  font-weight:500;color:rgba(243,240,231,.62);
+}
+.foot__links{display:flex;flex-wrap:wrap;gap:0 1.5rem}
 .foot__links a{
-  text-decoration:none;font-size:.76rem;letter-spacing:.14em;
-  text-transform:uppercase;color:rgba(243,240,231,.6);
+  display:inline-flex;align-items:center;
+  font-size:.9375rem;line-height:1.5rem;padding-block:.25rem;
+  color:rgba(243,240,231,.86);text-decoration:none;
   transition:color .35s;
-  padding-block:.6rem;              /* comfortable tap target on a phone */
 }
 .foot__links a:hover{color:var(--copper)}
+.foot .arr{width:.5rem;height:.5rem;flex:none;fill:currentColor;margin-left:.4rem;opacity:.7}
 .foot__brand{
-  display:flex;align-items:center;justify-content:center;gap:22px;
-  margin-top:clamp(1.1rem,2.6vh,1.9rem);
-}
-.foot img{height:54px;width:auto;opacity:.92}
-.foot__base{
-  margin-top:clamp(1.1rem,2.6vh,1.9rem);padding-top:1rem;
+  display:flex;align-items:center;justify-content:center;gap:2rem;
+  margin-top:clamp(1.5rem,3vh,2rem);padding-top:clamp(1.5rem,3vh,2rem);
   border-top:1px solid rgba(243,240,231,.1);
-  display:flex;flex-wrap:wrap;gap:.35rem 1.6rem;justify-content:center;text-align:center;
-  font-size:.74rem;color:rgba(243,240,231,.38);
+}
+.foot img{height:3.25rem;width:auto;opacity:.92;display:block}
+.foot__base{
+  margin-top:clamp(1.5rem,3vh,2rem);padding-top:1rem;
+  border-top:1px solid rgba(243,240,231,.1);
+  display:flex;flex-wrap:wrap;gap:.25rem 1.5rem;justify-content:center;text-align:center;
+  font-size:.75rem;line-height:1rem;color:rgba(243,240,231,.45);
 }
 /* The credit: Ethan Long Design's wordmark, outlined so it needs no font,
    one <path> per glyph. Each glyph carries --x (its left edge as a fraction
@@ -934,26 +950,34 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
    separates it from the logo. No target="_blank": Facebook's in-app browser
    has no tabs. */
 .credit{
-  display:inline-flex;flex-direction:column;align-items:flex-start;gap:5px;
-  padding-left:22px;border-left:1px solid rgba(243,240,231,.16);
-  font-size:.72rem;letter-spacing:.02em;line-height:1;
-  color:rgba(243,240,231,.5);text-decoration:none;
-  transition:color .3s,opacity .18s;
+  display:inline-flex;flex-direction:column;align-items:flex-start;gap:.5rem;
+  padding-left:2rem;border-left:1px solid rgba(243,240,231,.18);
+  text-decoration:none;transition:opacity .18s;
 }
-.credit:hover,.credit:focus-visible{color:#F3F0E7}
+.credit__by{
+  font-size:.68rem;line-height:1;letter-spacing:.24em;text-transform:uppercase;
+  font-weight:500;color:rgba(243,240,231,.62);transition:color .3s;
+}
+.credit:hover .credit__by,.credit:focus-visible .credit__by{color:#F3F0E7}
 .credit:active{opacity:.6;transition-duration:0s}
-.elw{height:28px;width:auto;flex:none;overflow:visible}
-.elw .g{fill:rgba(243,240,231,.5);transition:fill .28s 0s}
+.elw{height:1.75rem;width:auto;flex:none;overflow:visible;display:block}
+.elw .g{fill:rgba(243,240,231,.62);transition:fill .28s 0s}
 .credit:hover .elw .g,.credit:focus-visible .elw .g{fill:#F3F0E7;transition-delay:calc(var(--x) * 420ms)}
-/* Phones: six links wrapping as they fall leave ragged rows, so they sit
-   in two even columns. The fine print stacks, one line each. */
-@media(max-width:600px){
-  .foot__links{display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;text-align:center}
-  .foot__brand{gap:18px}
-  .foot img{height:48px}
-  .credit{padding-left:18px}
-  .elw{height:26px}
-  .foot__base{flex-direction:column;align-items:center}
+@media(max-width:700px){
+  .foot__nav{grid-template-columns:1fr;gap:0}
+  .foot__col,.foot__col:nth-child(2),.foot__col:last-child{
+    display:grid;grid-template-columns:5.75rem minmax(0,1fr);column-gap:1rem;align-items:baseline;
+    text-align:left;padding:.75rem 0;border-top:1px solid rgba(243,240,231,.1);
+  }
+  .foot__col:first-child{border-top:0;padding-top:0}
+  .foot__col .foot__links,.foot__col:nth-child(2) .foot__links,.foot__col:last-child .foot__links{justify-content:flex-start;gap:0 1rem}
+  .foot__k{margin:0}
+  .foot__links a{font-size:1rem}
+  .foot__brand{gap:1.25rem;margin-top:1.5rem;padding-top:2rem}
+  .foot img{height:3rem}
+  .credit{padding-left:1.25rem}
+  .elw{height:1.5rem}
+  .foot__base{flex-direction:column;align-items:center;margin-top:2rem;padding-top:1.25rem}
 }
 
 /* Short screens: the bar eats ~68px, so the contact content has to give some
@@ -964,7 +988,11 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   .contact__direct a{font-size:clamp(1.1rem,1.8vw,1.45rem);padding-bottom:.35rem}
   .foot img{height:42px}
   .foot__brand,.foot__base{margin-top:1rem}
+  .foot__brand{padding-top:1rem}
   .foot__base{padding-top:.8rem}
+  .foot{padding-block:1rem}
+  .foot__k{margin-bottom:.25rem}
+  .foot__links a{padding-block:.125rem}
   /* the form column is the tall one — this is where the height actually is */
   form,.f2{gap:.7rem}
   .field label{margin-bottom:.3rem;font-size:.62rem}
@@ -1423,18 +1451,33 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
     </div>
 
     <footer class="foot">
-      <div class="foot__links">
-        <a href="#services">Services</a>
-        <a href="#work">Work</a>
-        <a href="#contact">Estimates</a>
-        <a href="https://portal.golmn.com/login/V88vZXxBvng6559WZVsSFw/" target="_blank" rel="noopener">Customer Portal</a>
-        <a href="https://www.instagram.com/c.v.landscaping/" target="_blank" rel="noopener">Instagram</a>
-        <a href="https://www.facebook.com/p/CV-Landscaping-100090900660116/" target="_blank" rel="noopener">Facebook</a>
+      <div class="foot__nav">
+        <div class="foot__col">
+          <span class="foot__k">Explore</span>
+          <div class="foot__links">
+            <a href="#services">Services</a>
+            <a href="#work">Work</a>
+            <a href="#contact">Estimates</a>
+          </div>
+        </div>
+        <div class="foot__col">
+          <span class="foot__k">Customers</span>
+          <div class="foot__links">
+            <a href="https://portal.golmn.com/login/V88vZXxBvng6559WZVsSFw/" target="_blank" rel="noopener">Customer Portal<svg class="arr" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.6 1.4h8v8h-1.6V4.1L2.1 11 1 9.9 7.9 3H2.6z"/></svg></a>
+          </div>
+        </div>
+        <div class="foot__col">
+          <span class="foot__k">Follow</span>
+          <div class="foot__links">
+            <a href="https://www.instagram.com/c.v.landscaping/" target="_blank" rel="noopener">Instagram<svg class="arr" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.6 1.4h8v8h-1.6V4.1L2.1 11 1 9.9 7.9 3H2.6z"/></svg></a>
+            <a href="https://www.facebook.com/p/CV-Landscaping-100090900660116/" target="_blank" rel="noopener">Facebook<svg class="arr" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.6 1.4h8v8h-1.6V4.1L2.1 11 1 9.9 7.9 3H2.6z"/></svg></a>
+          </div>
+        </div>
       </div>
       <div class="foot__brand">
         <img src="assets/logo-white.png" alt="CV Landscaping">
         <a class="credit" href="https://ethanlongdesign.com" aria-label="Site by Ethan Long Design">
-          <span>Site by</span>
+          <span class="credit__by">Site by</span>
           <svg class="elw" viewBox="0 0 624.76 140.52" aria-hidden="true" focusable="false">
             <g transform="translate(-5.664 73.730)"><path class="g" style="--x:0.000" d="M5.66 0.00V-72.75H56.15V-58.69H22.90V-43.65H53.52V-29.88H22.90V-14.06H56.10V0.00Z"/></g>
             <g transform="translate(-5.664 73.730)"><path class="g" style="--x:0.089" d="M61.21 -58.69V-72.75H122.44V-58.69H100.42V0.00H83.23V-58.69Z"/></g>
