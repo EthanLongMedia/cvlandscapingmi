@@ -434,6 +434,7 @@ html.lenis,html.lenis body{height:auto}
    ============================================================ */
 .merch{
   position:relative;z-index:5;              /* above the pinned banner; nav is 60, mark 80 */
+  overflow-x:clip;                          /* fanned cards past the screen edge would widen the page on phones */
   margin-top:-80vh;                         /* rides up over the banner as the mark rises */
   background:var(--bone);
   /* short on top so the cards are on screen while the mark is still rising */
@@ -935,14 +936,14 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
    no tabs. */
 .credit{
   flex:none;display:inline-flex;flex-direction:column;align-items:center;gap:.5rem;
-  color:rgba(243,240,231,.62);text-decoration:none;
+  color:#F3F0E7;text-decoration:none;
   transition:color .3s,opacity .18s;
 }
 .credit__by{font-size:.75rem;line-height:1;letter-spacing:.02em}
 .credit:hover,.credit:focus-visible{color:#F3F0E7}
 .credit:active{opacity:.6;transition-duration:0s}
 .elw{height:2rem;width:auto;flex:none;overflow:visible;display:block}
-.elw .g{fill:rgba(243,240,231,.62);transition:fill .28s 0s}
+.elw .g{fill:#F3F0E7;transition:fill .28s 0s}
 .credit:hover .elw .g,.credit:focus-visible .elw .g{fill:#F3F0E7;transition-delay:calc(var(--x) * 420ms)}
 @media(max-width:1099px){
   .foot__bar{row-gap:2rem}
@@ -955,8 +956,11 @@ form{display:grid;gap:clamp(1rem,2vh,1.5rem)}
   .foot__links a:nth-child(even){justify-self:end}
   .foot img{height:3rem}
   .elw{height:1.75rem}
+  .foot__bar > img{margin-left:20px}
+  .credit{margin-right:20px}
   .foot__base{flex-direction:column;align-items:center;margin-top:2rem;padding-top:1.25rem}
 }
+@media(max-width:370px){.foot__bar > img{margin-left:8px}.credit{margin-right:8px}}
 
 /* Short screens: the bar eats ~68px, so the contact content has to give some
    back or it slides under it. Type comes down, nothing is removed. */
